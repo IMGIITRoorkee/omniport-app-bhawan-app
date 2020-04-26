@@ -50,6 +50,7 @@ class ComplaintSerializer(serializers.ModelSerializer):
             "phone_number",
             "timing",
             "failed_attempts",
+            "datetime_created"
         ]
         extra_kwargs = {
             "status": {"read_only": True},
