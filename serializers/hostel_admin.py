@@ -19,7 +19,7 @@ class HostelAdminSerializer(serializers.ModelSerializer):
     email_address = serializers.SerializerMethodField()
     phone_number = serializers.SerializerMethodField()
     room_number = serializers.SerializerMethodField()
-    display_picture = serializers.FileField(
+    display_picture = serializers.ImageField(
         source='person.display_picture',
         read_only=True,
     )
