@@ -19,6 +19,10 @@ class HostelAdminSerializer(serializers.ModelSerializer):
     email_address = serializers.SerializerMethodField()
     phone_number = serializers.SerializerMethodField()
     room_number = serializers.SerializerMethodField()
+    display_picture = serializers.FileField(
+        source='person.display_picture',
+        read_only=True,
+    )
 
     class Meta:
         """
@@ -31,6 +35,7 @@ class HostelAdminSerializer(serializers.ModelSerializer):
             'designation',
             'name',
             'email_address',
+            'display_picture',
             'phone_number',
             'room_number',
         ]
@@ -45,7 +50,7 @@ class HostelAdminSerializer(serializers.ModelSerializer):
             return contact_information.email_address
         except ContactInformation.DoesNotExist:
             return None
-    
+
     def get_phone_number(self, obj):
         """
         Returns the phone number of an admin.
@@ -59,7 +64,7 @@ class HostelAdminSerializer(serializers.ModelSerializer):
             return contact_information.primary_phone_number
         except ContactInformation.DoesNotExist:
             return None
-    
+
     def get_room_number(self, obj):
         """
         Returns the room number of admin.

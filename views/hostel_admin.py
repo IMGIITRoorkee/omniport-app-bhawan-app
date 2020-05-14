@@ -36,10 +36,10 @@ class HostelAdminViewset(viewsets.ModelViewSet):
         """
         filters = {}
         params = self.request.GET
-        
+
         """
         Apply the filters for statuses.
-        Usage: /admin/?student=true gives all hostel admins which are 
+        Usage: /admin/?student=true gives all hostel admins which are
         students.
         """
         if 'student' in params.keys():
@@ -68,7 +68,7 @@ class HostelAdminViewset(viewsets.ModelViewSet):
                     raise Exception(
                         f'{person.full_name} is not a resident of {hostel.name}',
                     )
-                    
+
                 serializer.save(
                     person=person,
                     start_date=today,
