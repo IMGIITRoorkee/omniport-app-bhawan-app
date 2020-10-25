@@ -1,9 +1,12 @@
 from django.db import models
 
 import swapper
+
 from formula_one.models.base import Model
 from formula_one.utils.upload_to import UploadTo
+
 from bhawan_app.models import Timing
+from bhawan_app.constants import facility_types
 
 
 class Facility(Model):
@@ -11,8 +14,8 @@ class Facility(Model):
     This model contains information about a facility of a hostel
     """
 
-    hostel = models.ForeignKey(
-        to=swapper.get_model_name("kernel", "Residence"), on_delete=models.CASCADE,
+    hostel = models.ManyToManyField(
+        to=swapper.get_model_name("kernel", "Residence"),
     )
     name = models.CharField(max_length=63, blank=False, null=False,)
     description = models.TextField(blank=True, null=True,)
@@ -23,6 +26,11 @@ class Facility(Model):
         null=True,
     )
     timings = models.ManyToManyField(Timing,)
+    facility_type = models.CharField(
+        max_length=10,
+        choices=facility_types.FACILITY_TYPES,
+        default=facility_types.OTHER,
+    )
 
     def __str__(self):
         """
