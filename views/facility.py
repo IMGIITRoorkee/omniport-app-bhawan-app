@@ -44,7 +44,12 @@ class FacilityViewset(viewsets.ModelViewSet):
         :return: status code of the request
         """
 
-        if is_hostel_admin(request.person):
+        if not is_hostel_admin(request.person):
+            return Response(
+            {"You are not allowed to perform this action !"},
+            status=status.HTTP_403_FORBIDDEN,
+            )
+        try:
             hostel = Residence.objects.get(code=hostel__code)
             timings = self.request.POST.pop('timings')
             display_picture = self.request.FILES.get('display_picture')
@@ -53,21 +58,19 @@ class FacilityViewset(viewsets.ModelViewSet):
             for field in self.request.POST:
                 data[field] = "".join(self.request.POST[field])
             facility = Facility.objects.create(
-                hostel=hostel,
                 display_picture=display_picture,
                 **data,
             )
+            facility.hostel.add(hostel)
             for timing in timings:
                 timing = json.loads(timing)
                 timing_object = Timing.objects.create(**timing)
                 facility.timings.add(timing_object)
 
             return Response('Facility created', status=status.HTTP_201_CREATED)
+        except Exception:
+            return Response('Bad request', status=status.HTTP_400_BAD_REQUEST)
             
-        return Response(
-            {"You are not allowed to perform this action !"},
-            status=status.HTTP_403_FORBIDDEN,
-        )
     
     def partial_update(self, request, hostel__code, pk=None):
         """
@@ -80,4 +83,25 @@ class FacilityViewset(viewsets.ModelViewSet):
         return Response(
             {"You are not allowed to perform this action !"},
             status=status.HTTP_403_FORBIDDEN,
+        )
+
+    def delete(self, request, hostel__code, pk):
+        """
+        Delete facility instance if user has required permissions.
+        """
+        if not is_hostel_admin(request.person):
+            return Response(
+                {"You are not allowed to perform this action !"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        
+        hostel = Residence.objects.get(code=hostel__code)
+        facility = Facility.objects.get(pk=pk)
+        facility.hostel.remove(hostel)
+        # If there is no hostel remaining attached to this facility remove it
+        if not facility.hostel.exists():
+            facility.delete()
+        return Response(
+            {"You are not allowed to perform this action !"},
+            status=status.HTTP_200_OK,
         )

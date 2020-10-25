@@ -1,16 +1,18 @@
 import swapper
 from django.db import models
-
-from kernel.models.roles.base import AbstractRole
+from formula_one.models.base import Model
 
 from bhawan_app.constants import designations
 
 
-class HostelAdmin(AbstractRole):
+class HostelAdmin(Model):
     """
     This model holds information pertaining to the administrator of a hostel
     """
-
+    person = models.ForeignKey(
+        to=swapper.get_model_name('kernel', 'Person'),
+        on_delete=models.CASCADE,
+    )
     designation = models.CharField(max_length=5, choices=designations.DESIGNATIONS,)
     hostel = models.ForeignKey(
         to=swapper.get_model_name("kernel", "Residence"), on_delete=models.CASCADE,
@@ -28,4 +30,9 @@ class HostelAdmin(AbstractRole):
         return f"{person} - {designation}, {hostel}"
     
     class Meta:
-        unique_together = ('hostel', 'designation')
+        """"
+        There can't be two instances of this model with 
+            1. Same hostel and designation.
+            2. Same person and hostel.
+        """
+        unique_together = (('hostel', 'designation'), ('person', 'hostel'))
