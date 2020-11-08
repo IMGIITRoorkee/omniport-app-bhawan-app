@@ -6,6 +6,7 @@ ELECTRIC = "ele"
 TOILET = "toi"
 CARPENTRY = "car"
 CLEANING = "cle"
+MESS = "mes"
 OTHER = "oth"
 
 COMPLAINT_TYPES = (
@@ -13,6 +14,7 @@ COMPLAINT_TYPES = (
     (TOILET, "Toilet"),
     (CARPENTRY, "Carpentry"),
     (CLEANING, "Cleaning"),
+    (MESS, "Mess"),
     (OTHER, "Other"),
 )
 COMPLAINT_TYPES_MAP = {

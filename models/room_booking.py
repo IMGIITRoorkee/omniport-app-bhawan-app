@@ -3,6 +3,8 @@ import swapper
 from formula_one.models.base import Model
 from django.db import models
 from bhawan_app.constants import statuses
+from bhawan_app.models.resident import Resident
+
 
 
 class RoomBooking(Model):
@@ -10,8 +12,9 @@ class RoomBooking(Model):
     Describes the details of a complaint registered.
     """
 
-    person = models.ForeignKey(
-        to=swapper.get_model_name("Kernel", "Person"), on_delete=models.CASCADE
+    resident = models.ForeignKey(
+        to=Resident,
+        on_delete=models.CASCADE,
     )
     status = models.CharField(
         max_length=10, 
@@ -27,4 +30,4 @@ class RoomBooking(Model):
         :return: the string representation of the model
         """
 
-        return f"{self.person.full_name}'s booking."
+        return f"{self.resident.person.full_name}'s booking."

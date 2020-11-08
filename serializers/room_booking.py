@@ -21,11 +21,11 @@ class RoomBookingSerializer(serializers.ModelSerializer):
 
 
     booked_by = serializers.CharField(
-        source='person.full_name',
+        source='resident.person.full_name',
         read_only=True,
     )
     booked_by_room_no = serializers.CharField(
-        source='person.residentialinformation.room_number',
+        source='resident.room_number',
         read_only=True,
     )
     visitor = VisitorSerializer(
@@ -49,36 +49,36 @@ class RoomBookingSerializer(serializers.ModelSerializer):
             'status': { 'read_only': True },
         }
 
-    def create(self, validated_data):
-        """
-        Get visitor field
-        """
-        visitors = validated_data.pop('visitor')
-        visitors_serializer = VisitorSerializer(data=visitors, many=True)
+    # def create(self, validated_data):
+    #     """
+    #     Get visitor field
+    #     """
+    #     visitors = validated_data.pop('visitor')
+    #     visitors_serializer = VisitorSerializer(data=visitors, many=True)
 
-        """
-        Get hostel, hostel__code from request url using context from views
-        """
-        visitors_serializer.is_valid(raise_exception=True)
+    #     """
+    #     Get hostel, hostel__code from request url using context from views
+    #     """
+    #     visitors_serializer.is_valid(raise_exception=True)
 
-        """
-        Get authenticated user and make a RoomBooking instance
-        """
-        person = self.context['person']
-        validated_data['status'] = statuses.PENDING
-        room_booking = RoomBooking.objects.create(
-            **validated_data, person=person,
-        )
+    #     """
+    #     Get authenticated user and make a RoomBooking instance
+    #     """
+    #     resident = self.context['resident']
+    #     validated_data['status'] = statuses.PENDING
+    #     room_booking = RoomBooking.objects.create(
+    #         **validated_data, resident=resident,
+    #     )
 
-        """
-        Populate the Visitors with current booking and authenticated user
-        """
-        for visitor in visitors_serializer.validated_data:
-            visitor['booking'] = room_booking
+    #     """
+    #     Populate the Visitors with current booking and authenticated user
+    #     """
+    #     for visitor in visitors_serializer.validated_data:
+    #         visitor['booking'] = room_booking
 
-        visitors_serializer.save(datetime_modified=datetime.now())
+    #     visitors_serializer.save(datetime_modified=datetime.now())
 
-        return room_booking
+    #     return room_booking
 
     def get_phone_number(self, booking):
         """
@@ -88,7 +88,7 @@ class RoomBookingSerializer(serializers.ModelSerializer):
 
         try:
             contact_information = \
-                ContactInformation.objects.get(person=booking.person)
+                ContactInformation.objects.get(person=booking.resident.person)
             return contact_information.primary_phone_number
         except ContactInformation.DoesNotExist:
             return None

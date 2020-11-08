@@ -12,7 +12,7 @@ def get_hostel_admin(person, active_status=ActiveStatus.ANY):
     """
 
     try:
-        queryset = HostelAdmin.objects_filter(active_status)
+        # queryset = HostelAdmin.objects.filter(active_status)
         role = HostelAdmin.objects.get(person=person)
         return role
     except HostelAdmin.DoesNotExist:

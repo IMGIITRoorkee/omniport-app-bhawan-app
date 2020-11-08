@@ -123,13 +123,15 @@ class ComplaintViewset(viewsets.ModelViewSet):
         """
         Filter based on hostel
         """
-        filters['person__residentialinformation__residence__code']= \
-                self.kwargs["hostel__code"]
+        filters['resident__hostel__code']= self.kwargs["hostel__code"]
 
         """
         If not hostel admin, list the booking by the person only. Person is the 
         currently authenticated user.
         """
         if not is_hostel_admin(request.person):
-            filters['person_id'] = request.person.id
+            print("*"*50)
+            print(request.user.person)
+            print("*"*50)
+            filters['resident__person'] = request.person.id
         return filters

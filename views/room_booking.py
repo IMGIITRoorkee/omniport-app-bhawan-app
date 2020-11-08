@@ -7,7 +7,7 @@ from rest_framework import mixins, viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from bhawan_app.models import RoomBooking, Visitor
+from bhawan_app.models import RoomBooking, Visitor, Resident
 from bhawan_app.serializers.room_booking import RoomBookingSerializer
 from bhawan_app.managers.services import is_hostel_admin, is_supervisor, is_warden
 from bhawan_app.constants import statuses
@@ -40,19 +40,14 @@ class RoomBookingViewset(viewsets.ModelViewSet):
             .filter(**filters).order_by('-datetime_modified')
         return queryset
 
-    def get_serializer_context(self):
-        return {
-            "person": self.request.person,
-        }
-
     def create(self, request, hostel__code):
         file_data = self.request.FILES
         visitors = self.request.POST.pop('visitors')
         try:
-            residential_information = request.person.residentialinformation
-        except ResidentialInformation.DoesNotExist:
+            resident = Resident.objects.get(person=request.person)
+        except Resident.DoesNotExist:
             return Response(
-                f'{request.person}\'s residential informarion is not registered',
+                f'{request.person} is not a registered resident',
                 status=status.HTTP_403_FORBIDDEN,
             )
         try:
@@ -60,7 +55,7 @@ class RoomBookingViewset(viewsets.ModelViewSet):
             for data in self.request.POST:
                 sanitized_data[data] = self.request.POST[data]
             room_booking = RoomBooking.objects.create(
-                person=request.person,
+                resident=resident,
                 **sanitized_data,
             )
             visitor_index = 0
@@ -76,7 +71,7 @@ class RoomBookingViewset(viewsets.ModelViewSet):
                     photo_identification=photo_identification,
                     booking=room_booking, **visitor,
                 )
-                visitor_index+=1
+                visitor_index += 1
             return Response(
                 'Room booking requested',
                 status=status.HTTP_201_CREATED,
@@ -147,8 +142,7 @@ class RoomBookingViewset(viewsets.ModelViewSet):
         """
         Filter based on hostel
         """
-        filters['person__residentialinformation__residence__code'] = \
-                self.kwargs["hostel__code"]
+        filters['resident__hostel__code'] = self.kwargs["hostel__code"]
 
         """
         Filter based on date of booking, if past=True then filter booking which
@@ -164,5 +158,5 @@ class RoomBookingViewset(viewsets.ModelViewSet):
         If not hostel admin, list the booking by the person only.
         """
         if not is_hostel_admin(request.person):
-            filters['person_id'] = request.person.id
+            filters['resident__person'] = request.person.id
         return filters
