@@ -5,6 +5,8 @@ from django.core.validators import MaxValueValidator
 from formula_one.models.base import Model
 from bhawan_app.constants import complaint_types, statuses
 from bhawan_app.models.complaint_time_slot import ComplaintTimeSlot
+from bhawan_app.models.resident import Resident
+
 
 
 class Complaint(Model):
@@ -12,8 +14,9 @@ class Complaint(Model):
     Describes the details of a complaint registered.
     """
 
-    person = models.ForeignKey(
-        to=swapper.get_model_name("Kernel", "Person"), on_delete=models.CASCADE,
+    resident = models.ForeignKey(
+        to=Resident,
+        on_delete=models.CASCADE,
     )
     complaint_type = models.CharField(
         max_length=10,
@@ -37,5 +40,5 @@ class Complaint(Model):
         """
 
         complaint_type = self.get_complaint_type_display()
-        room_no = self.person.residentialinformation.room_number
+        room_no = self.resident.room_number
         return f"{complaint_type} issue in {room_no}"

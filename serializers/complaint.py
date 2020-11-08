@@ -21,15 +21,15 @@ class ComplaintSerializer(serializers.ModelSerializer):
             self.fields.get('status').read_only = False
 
     complainant = serializers.CharField(
-        source='person.full_name',
+        source='resident.person.full_name',
         read_only=True,
     )
     hostel_code = serializers.CharField(
-        source='person.residentialinformation.residence.code',
+        source='resident.hostel.code',
         read_only=True,
     )
     room_no = serializers.CharField(
-        source='person.residentialinformation.room_number',
+        source='resident.room_number',
         read_only=True,
     )
 
@@ -69,7 +69,7 @@ class ComplaintSerializer(serializers.ModelSerializer):
         """
 
         try:
-            hostel = obj.person.residentialinformation.residence
+            hostel = obj.resident.hostel
             timings = ComplaintTimeSlot.objects\
                 .filter(hostel=hostel).get(complaint_type=obj.complaint_type)
             new_timings = timings.timing.all()
@@ -86,7 +86,7 @@ class ComplaintSerializer(serializers.ModelSerializer):
 
         try:
             contact_information = \
-                ContactInformation.objects.get(person=obj.person)
+                ContactInformation.objects.get(person=obj.resident.person)
             return contact_information.primary_phone_number
         except ContactInformation.DoesNotExist:
             return None

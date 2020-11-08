@@ -47,7 +47,7 @@ class PersonalInfoSerializer(serializers.ModelSerializer):
     def get_id(self, obj):
         """
         Returns a unique identification ID for the logged in person
-        :param obj: an inst'isance of ResidentialInformation
+        :param obj: an instance of ResidentialInformation
         :return: a unique identification ID for the logged in person
         """
 
@@ -96,3 +96,11 @@ class PersonalInfoSerializer(serializers.ModelSerializer):
             silent=True,
         )
         return role_student is not None
+
+    def get_is_resident(self, obj):
+        """
+        Checks if the authenticated user is a registered resident of any hostel or not
+        """
+
+        person = obj.person
+        return Resident.objects.filter(person=person).exists()
