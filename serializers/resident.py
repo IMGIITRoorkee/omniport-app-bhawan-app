@@ -27,3 +27,6 @@ class ResidentSerializer(serializers.ModelSerializer):
             "room_number",
             "hostel_code",
         ]
+        extra_kwargs = {
+            'room_number': { 'read_only': True },
+        }
