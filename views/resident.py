@@ -1,3 +1,5 @@
+import swapper
+
 from datetime import datetime
 
 from rest_framework import mixins, viewsets, status
@@ -17,6 +19,9 @@ from bhawan_app.managers.services import (
 )
 from bhawan_app.pagination.custom_pagination import CustomPagination 
 
+
+Person = swapper.load_model("Kernel", "Person")
+Residence = swapper.load_model("kernel", "Residence")
 
 class ResidentViewset(viewsets.ModelViewSet):
     """
@@ -42,6 +47,25 @@ class ResidentViewset(viewsets.ModelViewSet):
         queryset = Resident.objects\
             .filter(**filters).order_by('-datetime_modified')
         return queryset
+
+    def create(self, request, hostel__code):
+        data = request.data
+        try:
+            person_id = data['person']
+            room_number = data['room_number']
+            person = Person.objects.get(id=person_id)
+            hostel = Residence.objects.get(code=hostel__code)
+            instance = Resident.objects.create(
+                person=person,
+                room_number=room_number,
+                hostel=hostel,
+            )
+            return ResidentSerializer(instance).data
+        except Exception:
+            return Response(
+                "Bad response!",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     def partial_update(self, request, hostel__code, pk=None):
         instance = self.get_object()
