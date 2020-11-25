@@ -29,6 +29,7 @@ class ResidentViewset(viewsets.ModelViewSet):
     pagination_class = CustomPagination
 
     def initial(self, request, *args, **kwargs):
+        return super().initial(request, *args, **kwargs)
         if not is_warden(request.person) and \
                 not is_supervisor(request.person):
             return Response(
