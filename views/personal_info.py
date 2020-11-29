@@ -5,7 +5,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from bhawan_app.serializers.personal_info import PersonalInfoSerializer
-ResidentialInformation = swapper.load_model('Kernel', 'ResidentialInformation')
+from bhawan_app.models import Resident, HostelAdmin
+# ResidentialInformation = swapper.load_model('Kernel', 'ResidentialInformation')
 
 
 class PersonalInfoView(generics.RetrieveAPIView):
@@ -16,7 +17,7 @@ class PersonalInfoView(generics.RetrieveAPIView):
 
     permission_classes = [IsAuthenticated, ]
 
-    def retrieve(self, request,  pk=None):
+    def retrieve(self, request, pk=None):
         """
         View to serve GET requests
         :param request: the request that is to be responded to
@@ -27,13 +28,15 @@ class PersonalInfoView(generics.RetrieveAPIView):
 
         person = request.person
         try:
-            residential_info = ResidentialInformation.objects.get(
-                person=person,
-            )
-        except ResidentialInformation.DoesNotExist:
-            return Response(
-                'Please fill in your residential information.',
-                status=status.HTTP_206_PARTIAL_CONTENT,
-            )
-        serializer = PersonalInfoSerializer(residential_info)
+            resident = Resident.objects.get(person=person)
+        except Resident.DoesNotExist:
+            try:
+                admin = HostelAdmin.objects.get(person=person)
+            except HostelAdmin.DoesNotExist:
+                return Response(
+                    'Please fill in your residential information.',
+                    status=status.HTTP_206_PARTIAL_CONTENT,
+                )
+        instance = resident if resident else admin
+        serializer = PersonalInfoSerializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
