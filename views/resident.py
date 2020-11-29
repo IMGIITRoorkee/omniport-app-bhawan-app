@@ -6,6 +6,7 @@ from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from django.core.exceptions import ValidationError
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -25,7 +26,7 @@ Residence = swapper.load_model("kernel", "Residence")
 
 class ResidentViewset(viewsets.ModelViewSet):
     """
-    Detail view for getting complaint information of a single hostel
+    Detail view for getting information of a resident
     """
 
     serializer_class = ResidentSerializer
@@ -34,12 +35,12 @@ class ResidentViewset(viewsets.ModelViewSet):
     pagination_class = CustomPagination
 
     def initial(self, request, *args, **kwargs):
-        return super().initial(request, *args, **kwargs)
-        if not is_warden(request.person) and \
-                not is_supervisor(request.person):
-            return Response(
+        super().initial(request, *args, **kwargs)
+        if is_warden(request.person) or is_supervisor(request.person):
+            pass
+        else:
+            raise PermissionDenied(
                 "Only Supervisor and Warden are allowed to perform this action!",
-                status=status.HTTP_403_FORBIDDEN,
             )
 
     def get_queryset(self):
@@ -60,19 +61,38 @@ class ResidentViewset(viewsets.ModelViewSet):
                 room_number=room_number,
                 hostel=hostel,
             )
-            return ResidentSerializer(instance).data
+            return Response(ResidentSerializer(instance).data)
         except Exception:
             return Response(
-                "Bad response!",
+                "Bad request!",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    
+    def retrieve(self, request, hostel__code, pk=None):
+        enrolment_number = pk
+        try:
+            queryset = self.get_queryset()
+            instance = queryset.get(person__student__enrolment_number=enrolment_number)
+            return Response(ResidentSerializer(instance).data)
+        except Exception:
+            return Response(
+                "Bad request!",
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
     def partial_update(self, request, hostel__code, pk=None):
-        instance = self.get_object()
-        serializer = ResidentSerializer(instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(datetime_modified=datetime.now())
-        return Response(serializer.data)
+        try:
+            enrolment_number = pk
+            instance = Resident.objects.get(person__student__enrolment_number=enrolment_number)
+            print(instance)
+            instance.room_number = request.data['room_number']
+            instance.save()
+            return Response(ResidentSerializer(instance).data)
+        except Exception:
+            return Response(
+                "Bad request!",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     def get_filters(self, request):
         """
