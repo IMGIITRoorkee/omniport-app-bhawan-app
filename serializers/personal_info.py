@@ -7,16 +7,14 @@ from formula_one.mixins.period_mixin import ActiveStatus
 
 from bhawan_app.managers.services import get_hostel_admin
 
-ResidentialInformation = swapper.load_model('kernel', 'ResidentialInformation')
 
-
-class PersonalInfoSerializer(serializers.ModelSerializer):
+class PersonalInfoSerializer(serializers.Serializer):
     """
-    Serializer for ResidentialInformation objects
+    Serializer for personal information of student related to bhawans"
     """
 
-    residence = serializers.CharField(
-        source='residence.code',
+    hostel = serializers.CharField(
+        source='hostel.code',
     )
     is_admin = serializers.SerializerMethodField(
         read_only=True,
@@ -33,13 +31,11 @@ class PersonalInfoSerializer(serializers.ModelSerializer):
         """
         Meta class for PersonalInfoSerializer
         """
-
-        model = ResidentialInformation
         fields = [
             'id',
             'is_admin',
             'full_name',
-            'residence',
+            'hostel',
             'room_number',
             'is_student',
         ]
