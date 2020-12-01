@@ -56,6 +56,11 @@ class ResidentViewset(viewsets.ModelViewSet):
             room_number = data['room_number']
             person = Person.objects.get(id=person_id)
             hostel = Residence.objects.get(code=hostel__code)
+            try:
+                existing = Resident.objects.get(person=person)
+                existing.delete()
+            except Resident.DoesNotExist:
+                pass
             instance = Resident.objects.create(
                 person=person,
                 room_number=room_number,
