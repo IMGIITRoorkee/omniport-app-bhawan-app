@@ -68,13 +68,25 @@ class ComplaintViewset(viewsets.ModelViewSet):
 
     def create(self, request, hostel__code):
         person = request.person
-        description = request.data['description']
-        complaint_type = request.data['complaint_type']
+        data = request.data
+        description = data.get('description', None)
+        complaint_type = data.get('complaint_type', None)
+        if not description:
+            return Response(
+                "Description can't be left empty !",
+                status.HTTP_404_NOT_FOUND,
+            )
+        if not complaint_type:
+            return Response(
+                "Complaint type can't be left empty !",
+                status.HTTP_404_NOT_FOUND,
+            )
         try:
             resident = Resident.objects.get(person=person)
         except Resident.DoesNotExist:
             return Response(
-                "Resident doesn't exist !"
+                "Resident doesn't exist !",
+                status.HTTP_404_NOT_FOUND,
             )
         instance = Complaint.objects.create(
             resident=resident,
@@ -149,8 +161,5 @@ class ComplaintViewset(viewsets.ModelViewSet):
         currently authenticated user.
         """
         if not is_hostel_admin(request.person):
-            print("*"*50)
-            print(request.user.person)
-            print("*"*50)
             filters['resident__person'] = request.person.id
         return filters
