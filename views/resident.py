@@ -1,6 +1,7 @@
 import swapper
 
 from datetime import datetime
+from distutils.util import strtobool
 
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
@@ -11,7 +12,7 @@ from django.core.exceptions import ValidationError
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from bhawan_app.models import Resident
+from bhawan_app.models import Resident, HostelAdmin
 from bhawan_app.serializers.resident import ResidentSerializer
 from bhawan_app.managers.services import (
     is_warden, 
@@ -44,9 +45,24 @@ class ResidentViewset(viewsets.ModelViewSet):
             )
 
     def get_queryset(self):
+        params = self.request.GET
         filters = self.get_filters(self.request)
         queryset = Resident.objects\
-            .filter(**filters).order_by('-datetime_modified')
+            .filter(**filters)
+
+        """
+        Filter based on the fact, if student is admin
+        """
+        is_admin = params.get('is_admin', None)
+        if is_admin:
+            is_admin = strtobool(is_admin)
+            hostel_admin_ids = HostelAdmin.objects.values_list('person__id', flat=True)
+            if is_admin:
+                queryset = queryset.filter(person__id__in=hostel_admin_ids)
+            else:
+                queryset = queryset.exclude(person__id__in=hostel_admin_ids)
+        
+        queryset = queryset.order_by('-datetime_modified')
         return queryset
 
     def create(self, request, hostel__code):
@@ -128,6 +144,21 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         Filter based on hostel
         """
-        filters['hostel__code'] = self.kwargs["hostel__code"]
+        filters['hostel__code'] = self.kwargs['hostel__code']
+
+        """
+        Filter based on Year
+        """
+        year = params.get('year', None)
+        if year:
+            filters['person__student__current_year'] = year
+
+        # """
+        # Filter based on Branch
+        # """
+        # branch = params.get('branch', None)
+        # if branch:
+        #     filters['person__student__current_year'] = year
+
 
         return filters
