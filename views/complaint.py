@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 
-from bhawan_app.models import Complaint
+from bhawan_app.models import Complaint, Resident
 from bhawan_app.serializers.complaint import ComplaintSerializer
 from bhawan_app.managers.services import (
     is_warden, 
@@ -65,6 +65,25 @@ class ComplaintViewset(viewsets.ModelViewSet):
         return {
             "person": self.request.person,
         }
+
+    def create(self, request, hostel__code):
+        person = request.person
+        description = request.data['description']
+        complaint_type = request.data['complaint_type']
+        try:
+            resident = Resident.objects.get(person=person)
+        except Resident.DoesNotExist:
+            return Response(
+                "Resident doesn't exist !"
+            )
+        instance = Complaint.objects.create(
+            resident=resident,
+            status=statuses.PENDING,
+            datetime_modified=datetime.now(),
+            description=description,
+            complaint_type=complaint_type,
+        )
+        return Response(ComplaintSerializer(instance).data)
 
     def retrieve(self, request, hostel__code, pk=None):
         queryset = self.get_queryset()
