@@ -56,12 +56,6 @@ class ComplaintSerializer(serializers.ModelSerializer):
             "status": {"read_only": True},
         }
 
-    def create(self, validated_data):
-        validated_data["person"] = self.context["person"]
-        validated_data["status"] = statuses.PENDING
-        validated_data["datetime_modified"] = datetime.now()
-        return super().create(validated_data)
-
     def get_timing(self, obj):
         """
         Returns the timings of a complaint type.

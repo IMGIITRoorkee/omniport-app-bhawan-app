@@ -153,12 +153,11 @@ class ResidentViewset(viewsets.ModelViewSet):
         if year:
             filters['person__student__current_year'] = year
 
-        # """
-        # Filter based on Branch
-        # """
-        # branch = params.get('branch', None)
-        # if branch:
-        #     filters['person__student__current_year'] = year
-
+        """
+        Filter based on Branch
+        """
+        branch = params.get('branch', None)
+        if branch:
+            filters['person__student__branch__code'] = branch
 
         return filters
