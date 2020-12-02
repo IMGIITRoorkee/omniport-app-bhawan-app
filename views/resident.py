@@ -54,24 +54,37 @@ class ResidentViewset(viewsets.ModelViewSet):
         try:
             person_id = data['person']
             room_number = data['room_number']
-            person = Person.objects.get(id=person_id)
-            hostel = Residence.objects.get(code=hostel__code)
-            try:
-                existing = Resident.objects.get(person=person)
-                existing.delete()
-            except Resident.DoesNotExist:
-                pass
-            instance = Resident.objects.create(
-                person=person,
-                room_number=room_number,
-                hostel=hostel,
-            )
-            return Response(ResidentSerializer(instance).data)
         except Exception:
             return Response(
-                "Bad request!",
+                "Invalid field values for 'person' or 'room_number' !",
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        try:
+            person = Person.objects.get(id=person_id)
+        except Person.DoesNotExist:
+            return Response(
+                "Person doesn't exist !",
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        try:
+            hostel = Residence.objects.get(code=hostel__code)
+        except Residence.DoesNotExist:
+            return Response(
+                "Residence doesn't exist !",
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        try:
+            existing = Resident.objects.get(person=person)
+            existing.delete()
+        except Resident.DoesNotExist:
+            pass
+        instance = Resident.objects.create(
+            person=person,
+            room_number=room_number,
+            hostel=hostel,
+        )
+        return Response(ResidentSerializer(instance).data)
+        
     
     def retrieve(self, request, hostel__code, pk=None):
         enrolment_number = pk
@@ -79,25 +92,30 @@ class ResidentViewset(viewsets.ModelViewSet):
             queryset = self.get_queryset()
             instance = queryset.get(person__student__enrolment_number=enrolment_number)
             return Response(ResidentSerializer(instance).data)
-        except Exception:
+        except Resident.DoesNotExist:
             return Response(
-                "Bad request!",
-                status=status.HTTP_400_BAD_REQUEST,
+                "Resident does not exist !",
+                status=status.HTTP_404_NOT_FOUND,
             )
 
     def partial_update(self, request, hostel__code, pk=None):
+        data = request.data
+        enrolment_number = pk
         try:
-            enrolment_number = pk
             instance = Resident.objects.get(person__student__enrolment_number=enrolment_number)
-            print(instance)
-            instance.room_number = request.data['room_number']
-            instance.save()
-            return Response(ResidentSerializer(instance).data)
-        except Exception:
+        except Resident.DoesNotExist:
             return Response(
-                "Bad request!",
-                status=status.HTTP_400_BAD_REQUEST,
+                "Resident with this enrolment number doesn't exist !",
+                status=status.HTTP_404_NOT_FOUND,
             )
+        room_number = data.pop('room_number')
+        if len(data) > 0:
+            return Response(
+                "You are only allowed to change room number of a person !",
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        instance.save(room_number=room_number)
+        return Response(ResidentSerializer(instance).data)
 
     def get_filters(self, request):
         """
