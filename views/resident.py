@@ -163,7 +163,10 @@ class ResidentViewset(viewsets.ModelViewSet):
         is_student = params.get('is_student', None)
         if is_student:
             is_student = strtobool(is_student)
-            
+            if is_student:
+                queryset = queryset.filter(person__student__isnull=False)
+            else:
+                queryset = queryset.filter(person__student__isnull=True)
         
         queryset = queryset.filter(**filters).order_by('-datetime_modified')
 
