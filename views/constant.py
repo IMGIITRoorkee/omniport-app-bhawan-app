@@ -12,6 +12,8 @@ from bhawan_app.constants import (
 )
 
 Hostel = swapper.load_model('Kernel', 'Residence')
+Branch = swapper.load_model('Kernel', 'Branch')
+
 
 class ConstantViewset(
     mixins.ListModelMixin, 
@@ -27,7 +29,6 @@ class ConstantViewset(
         Return JSONified dictionary of constants and corresponding codes.
         :return: dictionay of contants and codes
         """
-        
         mapping = designations.STUDENT_COUNCIL_MAP
         reverse_student_council_map = \
             {mapping[key]: key for key in mapping.keys()}
@@ -62,5 +63,9 @@ class ConstantViewset(
         hostels = Hostel.objects.all()
         response['hostels'] = {
             hostel.code: hostel.name for hostel in hostels
+        }
+        branches = Branch.objects.values('name', 'code')
+        response['branches'] = {
+            branch['name']: branch['code'] for branch in branches
         }
         return Response(response)
