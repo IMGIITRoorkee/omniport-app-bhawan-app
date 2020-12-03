@@ -1,5 +1,6 @@
 import swapper
 from datetime import date
+from distutils.util import strtobool
 
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -42,17 +43,18 @@ class HostelAdminViewset(viewsets.ModelViewSet):
         Usage: /admin/?student=true gives all hostel admins which are
         students.
         """
-        if 'student' in params.keys():
-            student = params['student']
-            if student == 'true':
+
+        student = params.get('student', None)
+        if student:
+            student = strtobool(student)
+            if student:
                 filters['designation__in'] = \
                     designations.STUDENT_COUNCIL_MAP.keys()
 
         """
         Filter based on hostel
         """
-        filters['person__residentialinformation__residence__code']= \
-                self.kwargs['hostel__code']
+        filters['hostel__code']= self.kwargs['hostel__code']
         return filters
 
     def create(self, request, hostel__code, pk=None):
@@ -63,8 +65,12 @@ class HostelAdminViewset(viewsets.ModelViewSet):
                 person = Person.objects.get(pk=request.data['person'])
                 today = date.today()
                 hostel = Hostel.objects.get(code=hostel__code)
-
-                if person.residentialinformation.residence.code != hostel__code:
+                is_resident = Resident.objects.filter(person=person).exists()
+                if is_resident:
+                    hostel_code = person.resident.hostel.code
+                else:
+                    hostel_code = person.residentialinformation.residence.code
+                if  hostel_code != hostel__code:
                     raise Exception(
                         f'{person.full_name} is not a resident of {hostel.name}',
                     )

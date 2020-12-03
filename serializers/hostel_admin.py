@@ -71,5 +71,7 @@ class HostelAdminSerializer(serializers.ModelSerializer):
          Returns the primary room number of the admin
         :return: the primary room number of the admin
         """
-
-        return obj.person.residentialinformation.room_number
+        person = obj.person
+        if hasattr(person, 'resident'):
+            return person.resident.room_number
+        return None
