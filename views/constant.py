@@ -66,6 +66,6 @@ class ConstantViewset(
         }
         branches = Branch.objects.values('name', 'code')
         response['branches'] = {
-            branch['name']: branch['code'] for branch in branches
+            branch['code']: branch['name'] for branch in branches
         }
         return Response(response)
