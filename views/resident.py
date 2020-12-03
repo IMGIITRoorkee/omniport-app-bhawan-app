@@ -46,23 +46,8 @@ class ResidentViewset(viewsets.ModelViewSet):
 
     def get_queryset(self):
         params = self.request.GET
-        filters = self.get_filters(self.request)
-        queryset = Resident.objects\
-            .filter(**filters)
-
-        """
-        Filter based on the fact, if student is admin
-        """
-        is_admin = params.get('is_admin', None)
-        if is_admin:
-            is_admin = strtobool(is_admin)
-            hostel_admin_ids = HostelAdmin.objects.values_list('person__id', flat=True)
-            if is_admin:
-                queryset = queryset.filter(person__id__in=hostel_admin_ids)
-            else:
-                queryset = queryset.exclude(person__id__in=hostel_admin_ids)
-        
-        queryset = queryset.order_by('-datetime_modified')
+        queryset = Resident.objects.all()
+        queryset = self.apply_filters(self.request, queryset)
         return queryset
 
     def create(self, request, hostel__code):
@@ -133,7 +118,7 @@ class ResidentViewset(viewsets.ModelViewSet):
         instance.save(room_number=room_number)
         return Response(ResidentSerializer(instance).data)
 
-    def get_filters(self, request):
+    def apply_filters(self, request, queryset):
         """
         Return a dict with all the filters populated with the
         filters received from query params.
@@ -160,4 +145,26 @@ class ResidentViewset(viewsets.ModelViewSet):
         if branch:
             filters['person__student__branch__code'] = branch
 
-        return filters
+        """
+        Filter based on the fact, if person is admin
+        """
+        is_admin = params.get('is_admin', None)
+        if is_admin:
+            is_admin = strtobool(is_admin)
+            hostel_admin_ids = HostelAdmin.objects.values_list('person__id', flat=True)
+            if is_admin:
+                queryset = queryset.filter(person__id__in=hostel_admin_ids)
+            else:
+                queryset = queryset.exclude(person__id__in=hostel_admin_ids)
+        
+        """
+        Filter students
+        """
+        is_student = params.get('is_student', None)
+        if is_student:
+            is_student = strtobool(is_student)
+            
+        
+        queryset = queryset.filter(**filters).order_by('-datetime_modified')
+
+        return queryset
