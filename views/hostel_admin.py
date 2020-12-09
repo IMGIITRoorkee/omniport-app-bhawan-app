@@ -48,8 +48,7 @@ class HostelAdminViewset(viewsets.ModelViewSet):
         if student:
             student = strtobool(student)
             if student:
-                filters['designation__in'] = \
-                    designations.STUDENT_COUNCIL_MAP.keys()
+                filters['designation__in'] = designations.STUDENT_COUNCIL_LIST
 
         """
         Filter based on hostel
@@ -60,26 +59,45 @@ class HostelAdminViewset(viewsets.ModelViewSet):
     def create(self, request, hostel__code, pk=None):
         if is_warden(request.person):
             try:
-                serializer = self.get_serializer(data=request.data)
+                data = request.data
+                serializer = self.get_serializer(data=data)
+                designation = request.data['designation']
                 serializer.is_valid(raise_exception=True)
-                person = Person.objects.get(pk=request.data['person'])
+                person = Person.objects.get(pk=data['person'])
                 today = date.today()
                 hostel = Hostel.objects.get(code=hostel__code)
                 is_resident = Resident.objects.filter(person=person).exists()
+
+                """
+                1. A resident can't hold administrative any posts.
+                2. Can't hold any position in any other hostel than the
+                   one he's residing in.
+                """
                 if is_resident:
+                    if designation in designations.ADMINISTRATIVE_COUNCIL_LIST:
+                        return Response(
+                            "Resident of a hostel can't hold Administrative positions",
+                            status=status.HTTP_403_FORBIDDEN,
+                        )
                     hostel_code = person.resident.hostel.code
-                else:
-                    hostel_code = person.residentialinformation.residence.code
-                if  hostel_code != hostel__code:
-                    raise Exception(
-                        f'{person.full_name} is not a resident of {hostel.name}',
+                    if hostel_code != hostel__code:
+                        return Response(
+                            f"Person {person.full_name} is not a resident of {hostel__code}",
+                            status=status.HTTP_403_FORBIDDEN,
+                        )
+                
+                if designation in designations.STUDENT_COUNCIL_LIST and not resident:
+                    return Response(
+                        f"Person {person.full_name} is not a registered resident",
+                        status=status.HTTP_403_FORBIDDEN,
                     )
-                    
+                
                 serializer.save(
                     person=person,
                     start_date=today,
                     hostel=hostel,
                 )
+                
                 return Response(
                     serializer.data,
                     status=status.HTTP_201_CREATED,

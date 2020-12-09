@@ -30,13 +30,16 @@ class PersonalInfoView(generics.RetrieveAPIView):
         try:
             resident = Resident.objects.get(person=person)
         except Resident.DoesNotExist:
-            try:
-                admin = HostelAdmin.objects.get(person=person)
-            except HostelAdmin.DoesNotExist:
-                return Response(
-                    'Please fill in your residential information.',
-                    status=status.HTTP_206_PARTIAL_CONTENT,
-                )
-        instance = resident if resident else admin
+            pass
+        try:
+            admin = HostelAdmin.objects.filter(person=person).first()
+        except HostelAdmin.DoesNotExist:
+            pass
+        if not admin and not resident:
+            return Response(
+                'You are neither a resident nor an admin !',
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        instance = admin if admin else resident
         serializer = PersonalInfoSerializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
