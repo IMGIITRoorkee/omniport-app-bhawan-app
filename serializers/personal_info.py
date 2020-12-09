@@ -6,6 +6,8 @@ from kernel.managers.get_role import get_role
 from formula_one.mixins.period_mixin import ActiveStatus
 
 from bhawan_app.managers.services import get_hostel_admin
+from bhawan_app.models import Resident, HostelAdmin
+
 
 
 class PersonalInfoSerializer(serializers.Serializer):
@@ -13,8 +15,8 @@ class PersonalInfoSerializer(serializers.Serializer):
     Serializer for personal information of student related to bhawans"
     """
 
-    hostel = serializers.CharField(
-        source='hostel.code',
+    hostel = serializers.SerializerMethodField(
+        read_only=True,
     )
     is_admin = serializers.SerializerMethodField(
         read_only=True,
@@ -39,11 +41,26 @@ class PersonalInfoSerializer(serializers.Serializer):
             'room_number',
             'is_student',
         ]
+    
+    def get_hostel(self, obj):
+        """
+        Returns a list of hostels a person is associated with
+        :param obj: an instance of HostelAdmin or Resident
+        :return: a unique identification ID for the logged in person
+        """
+        hostel_list = []
+        if isinstance(obj, HostelAdmin):
+            hostel_list = HostelAdmin.objects\
+                .filter(person=obj.person).values_list('hostel__code', flat=True)
+        else:
+            hostel_list = [obj.hostel.code]
+        return hostel_list
+        
 
     def get_id(self, obj):
         """
         Returns a unique identification ID for the logged in person
-        :param obj: an instance of ResidentialInformation
+        :param obj: an instance of HostelAdmin or Resident
         :return: a unique identification ID for the logged in person
         """
 
@@ -69,7 +86,7 @@ class PersonalInfoSerializer(serializers.Serializer):
     def get_is_admin(self, obj):
         """
         Checks if the authenticated user is a hostel administrator or not
-        :param obj: an instance of ResidentialInformation
+        :param obj: an instance of HostelAdmin or Resident
         :return: a boolean if the authenticated user is a hostel administrator
         or not
         """
