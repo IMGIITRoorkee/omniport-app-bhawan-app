@@ -16,7 +16,7 @@ Branch = swapper.load_model('Kernel', 'Branch')
 
 
 class ConstantViewset(
-    mixins.ListModelMixin, 
+    mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
     """
@@ -47,7 +47,7 @@ class ConstantViewset(
         mapping = days.DAYS_MAP
         reverse_days = \
             {mapping[key]: key for key in mapping.keys()}
-        
+
         response = {}
         response['designations'] = {
             **reverse_student_council_map,

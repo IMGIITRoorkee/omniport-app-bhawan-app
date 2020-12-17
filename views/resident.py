@@ -12,18 +12,22 @@ from django.core.exceptions import ValidationError
 
 from django.core.exceptions import ObjectDoesNotExist
 
+from formula_one.models.generics.contact_information import ContactInformation
 from bhawan_app.models import Resident, HostelAdmin
 from bhawan_app.serializers.resident import ResidentSerializer
 from bhawan_app.managers.services import (
-    is_warden, 
-    is_supervisor, 
+    is_warden,
+    is_supervisor,
     is_hostel_admin
 )
-from bhawan_app.pagination.custom_pagination import CustomPagination 
+from bhawan_app.pagination.custom_pagination import CustomPagination
 
 
 Person = swapper.load_model("Kernel", "Person")
 Residence = swapper.load_model("kernel", "Residence")
+Student = swapper.load_model('Kernel', 'Student')
+Branch = swapper.load_model('Kernel', 'Branch')
+BiologicalInformation = swapper.load_model('Kernel', 'BiologicalInformation')
 
 class ResidentViewset(viewsets.ModelViewSet):
     """
@@ -85,19 +89,58 @@ class ResidentViewset(viewsets.ModelViewSet):
             hostel=hostel,
         )
         return Response(ResidentSerializer(instance).data)
-        
-    
+
     def retrieve(self, request, hostel__code, pk=None):
         enrolment_number = pk
         try:
             queryset = self.get_queryset()
             instance = queryset.get(person__student__enrolment_number=enrolment_number)
             return Response(ResidentSerializer(instance).data)
+
         except Resident.DoesNotExist:
+            person = Person.objects.get(student__enrolment_number=enrolment_number)
+            obj = {}
+            obj["enrolment_number"] = enrolment_number
+            obj["resident_name"] = person.full_name
+            obj["display_picture"] = person.display_picture
+            obj["hostel_code"] = None
+            obj["is_resident"] = False
+
+            try:
+                contact_information = \
+                    ContactInformation.objects.get(person=person)
+                obj["email_address"] = contact_information.email_address
+                obj["phone_number"] = contact_information.primary_phone_number
+            except ContactInformation.DoesNotExist:
+                obj["email_address"] = None
+                obj["phone_number"] = None
+
+            try:
+                biological_information = \
+                    BiologicalInformation.objects.get(person=person)
+                obj["date_of_birth"] = biological_information.date_of_birth
+            except BiologicalInformation.DoesNotExist:
+                obj["date_of_birth"] = None
+
+            try:
+                student = Student.objects.get(person=person)
+                branch = Branch.objects.get(student=student)
+                obj["department"] = branch.name
+                obj["current_year"] = student.current_year
+            except Student.DoesNotExist:
+                obj["department"] = None
+                obj["current_year"] = None
+            except Branch.DoesNotExist:
+                obj["department"] = None
+
+            return Response(obj)
+
+        except Person.DoesNotExist:
             return Response(
                 "Resident does not exist !",
                 status=status.HTTP_404_NOT_FOUND,
             )
+
 
     def partial_update(self, request, hostel__code, pk=None):
         data = request.data
@@ -125,7 +168,7 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         filters = {}
         params = self.request.GET
-        
+
         """
         Filter based on hostel
         """
@@ -156,7 +199,7 @@ class ResidentViewset(viewsets.ModelViewSet):
                 queryset = queryset.filter(person__id__in=hostel_admin_ids)
             else:
                 queryset = queryset.exclude(person__id__in=hostel_admin_ids)
-        
+
         """
         Filter students
         """
@@ -167,7 +210,15 @@ class ResidentViewset(viewsets.ModelViewSet):
                 queryset = queryset.filter(person__student__isnull=False)
             else:
                 queryset = queryset.filter(person__student__isnull=True)
-        
+
         queryset = queryset.filter(**filters).order_by('-datetime_modified')
 
         return queryset
+
+    @action(detail=False, methods=['get'])
+    def download(self, request):
+        """
+        This method exports a csv corresponding to the list
+        of students
+        """
+        pass

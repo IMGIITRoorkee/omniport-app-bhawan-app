@@ -36,7 +36,6 @@ class EventSerializer(serializers.ModelSerializer):
         timing_serializer.is_valid(raise_exception=True)
 
         hostel_code = self.context["hostel__code"]
-        print(hostel_code)
         try:
             hostel = Hostel.objects.get(code=hostel_code)
         except Exception:

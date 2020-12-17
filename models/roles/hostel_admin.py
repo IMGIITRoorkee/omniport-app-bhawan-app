@@ -28,10 +28,10 @@ class HostelAdmin(Model):
         designation = self.get_designation_display()
         hostel = self.hostel.name
         return f"{person} - {designation}, {hostel}"
-    
+
     class Meta:
         """"
-        There can't be two instances of this model with 
+        There can't be two instances of this model with
             1. Same hostel and designation.
             2. Same person and hostel.
         """

@@ -1,11 +1,11 @@
 import swapper
-from datetime import date
 from distutils.util import strtobool
 
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 
 from bhawan_app.models.roles.hostel_admin import HostelAdmin
+from bhawan_app.models.resident import Resident
 from bhawan_app.serializers.hostel_admin import HostelAdminSerializer
 from bhawan_app.constants import designations
 from bhawan_app.managers.services import is_warden
@@ -20,6 +20,7 @@ class HostelAdminViewset(viewsets.ModelViewSet):
 
     serializer_class = HostelAdminSerializer
     allowed_methods = ['GET', 'POST', 'PATCH',]
+    pagination_class = None
 
     def get_queryset(self):
         """
@@ -64,10 +65,9 @@ class HostelAdminViewset(viewsets.ModelViewSet):
                 designation = request.data['designation']
                 serializer.is_valid(raise_exception=True)
                 person = Person.objects.get(pk=data['person'])
-                today = date.today()
                 hostel = Hostel.objects.get(code=hostel__code)
-                is_resident = Resident.objects.filter(person=person).exists()
-
+                residents = Resident.objects.filter(person=person)
+                is_resident = residents.exists()
                 """
                 1. A resident can't hold administrative any posts.
                 2. Can't hold any position in any other hostel than the
@@ -79,26 +79,24 @@ class HostelAdminViewset(viewsets.ModelViewSet):
                             "Resident of a hostel can't hold Administrative positions",
                             status=status.HTTP_403_FORBIDDEN,
                         )
-                    hostel_code = person.resident.hostel.code
-                    if hostel_code != hostel__code:
+                    hostel_codes = list( residents.values_list('hostel__code', flat=True))
+                    if hostel__code not in hostel_codes:
                         return Response(
                             f"Person {person.full_name} is not a resident of {hostel__code}",
                             status=status.HTTP_403_FORBIDDEN,
                         )
-                
-                if designation in designations.STUDENT_COUNCIL_LIST and not resident:
+
+                if designation in designations.STUDENT_COUNCIL_LIST and not is_resident:
                     return Response(
                         f"Person {person.full_name} is not a registered resident",
                         status=status.HTTP_403_FORBIDDEN,
                     )
 
-                
                 serializer.save(
                     person=person,
-                    start_date=today,
                     hostel=hostel,
                 )
-                
+
                 return Response(
                     serializer.data,
                     status=status.HTTP_201_CREATED,

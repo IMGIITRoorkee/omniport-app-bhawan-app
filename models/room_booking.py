@@ -17,8 +17,8 @@ class RoomBooking(Model):
         on_delete=models.CASCADE,
     )
     status = models.CharField(
-        max_length=10, 
-        choices=statuses.BOOKING_STATUSES, 
+        max_length=10,
+        choices=statuses.BOOKING_STATUSES,
         default=statuses.PENDING,
     )
     requested_from = models.DateField()

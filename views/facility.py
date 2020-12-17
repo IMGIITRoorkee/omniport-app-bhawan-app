@@ -21,6 +21,7 @@ class FacilityViewset(viewsets.ModelViewSet):
     serializer_class = FacilitySerializer
     permission_classes = [IsAuthenticated,]
     allowed_methods = ['GET', 'POST', 'PATCH']
+    pagination_class = None
 
     def get_queryset(self):
         """
@@ -70,8 +71,8 @@ class FacilityViewset(viewsets.ModelViewSet):
             return Response('Facility created', status=status.HTTP_201_CREATED)
         except Exception:
             return Response('Bad request', status=status.HTTP_400_BAD_REQUEST)
-            
-    
+
+
     def partial_update(self, request, hostel__code, pk=None):
         """
         Update facility instance if user has required permissions.
@@ -79,7 +80,7 @@ class FacilityViewset(viewsets.ModelViewSet):
         """
         if is_hostel_admin(request.person):
             return super().partial_update(request, hostel__code, pk)
-            
+
         return Response(
             {"You are not allowed to perform this action !"},
             status=status.HTTP_403_FORBIDDEN,
@@ -94,7 +95,7 @@ class FacilityViewset(viewsets.ModelViewSet):
                 {"You are not allowed to perform this action !"},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        
+
         hostel = Residence.objects.get(code=hostel__code)
         facility = Facility.objects.get(pk=pk)
         facility.hostel.remove(hostel)
