@@ -79,7 +79,7 @@ class PersonalInfoSerializer(serializers.Serializer):
         if role_student is not None:
             return obj.person.student.enrolment_number
         elif role_faculty_member is not None:
-            return obj.person.faculty_member.employee_id
+            return obj.person.facultymember.employee_id
         else:
             return obj.person.id
 
