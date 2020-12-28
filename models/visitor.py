@@ -40,9 +40,9 @@ class Visitor(Model):
         )
         full_name = self.person.full_name
         relation = self.relation
-        booked_by = self.booking.person
-        booked_by_name = booked_by.full_name
-        booked_by_room_no = booked_by.residentialinformation.room_number
+        booked_by = self.booking.resident
+        booked_by_name = booked_by.person.full_name
+        booked_by_room_no = booked_by.room_number
         return (
             f'{full_name} - {relation} of {booked_by_name} | '
             f'{booked_by_room_no}'

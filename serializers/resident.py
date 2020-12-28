@@ -1,9 +1,12 @@
 import swapper
 
+from django_countries.serializer_fields import CountryField
+
 from rest_framework import serializers
 
 from bhawan_app.models import Resident
 from formula_one.models.generics.contact_information import ContactInformation
+from formula_one.models.generics.location_information import LocationInformation
 
 Student = swapper.load_model('Kernel', 'Student')
 Branch = swapper.load_model('Kernel', 'Branch')
@@ -27,6 +30,14 @@ class ResidentSerializer(serializers.ModelSerializer):
         source='person.display_picture',
         read_only=True,
     )
+    fathers_name = serializers.CharField(
+        source='father.full_name',
+        read_only=True,
+    )
+    mothers_name = serializers.CharField(
+        source='mother.full_name',
+        read_only=True,
+    )
     email_address = serializers.SerializerMethodField()
     enrolment_number = serializers.SerializerMethodField()
     current_year = serializers.SerializerMethodField()
@@ -34,6 +45,11 @@ class ResidentSerializer(serializers.ModelSerializer):
     phone_number = serializers.SerializerMethodField()
     date_of_birth = serializers.SerializerMethodField()
     is_resident = serializers.ReadOnlyField(default=True)
+    address = serializers.SerializerMethodField()
+    city = serializers.SerializerMethodField()
+    state = serializers.SerializerMethodField()
+    country = serializers.SerializerMethodField()
+    postal_code = serializers.SerializerMethodField()
 
     class Meta:
         model = Resident
@@ -41,6 +57,7 @@ class ResidentSerializer(serializers.ModelSerializer):
             "id",
             "resident_name",
             "room_number",
+            "having_computer",
             "hostel_code",
             "email_address",
             "enrolment_number",
@@ -49,7 +66,16 @@ class ResidentSerializer(serializers.ModelSerializer):
             "phone_number",
             "date_of_birth",
             "is_resident",
-            "display_picture"
+            "display_picture",
+            "address",
+            "city",
+            "state",
+            "country",
+            "postal_code",
+            "fathers_name",
+            "fathers_contact",
+            "mothers_name",
+            "mothers_contact",
         ]
         extra_kwargs = {
             'room_number': { 'read_only': True },
@@ -90,7 +116,7 @@ class ResidentSerializer(serializers.ModelSerializer):
 
     def get_department(self, resident):
         """
-        Retrives the dep of a resident
+        Retrives the department of a resident
         if he is a student
         """
         try:
@@ -124,4 +150,59 @@ class ResidentSerializer(serializers.ModelSerializer):
                 BiologicalInformation.objects.get(person=resident.person)
             return biological_information.date_of_birth
         except BiologicalInformation.DoesNotExist:
+            return None
+
+    def get_address(self, resident):
+        """
+        Retrives the address of the resident
+        """
+        try:
+            location_information = \
+                LocationInformation.objects.get(person=resident.person)
+            return location_information.address
+        except LocationInformation.DoesNotExist:
+            return None
+
+    def get_city(self, resident):
+        """
+        Retrives the city of the resident
+        """
+        try:
+            location_information = \
+                LocationInformation.objects.get(person=resident.person)
+            return location_information.city
+        except LocationInformation.DoesNotExist:
+            return None
+
+    def get_state(self, resident):
+        """
+        Retrives the state of the resident
+        """
+        try:
+            location_information = \
+                LocationInformation.objects.get(person=resident.person)
+            return location_information.state
+        except LocationInformation.DoesNotExist:
+            return None
+
+    def get_country(self, resident):
+        """
+        Retrives the address of the resident
+        """
+        try:
+            location_information = \
+                LocationInformation.objects.get(person=resident.person)
+            return location_information.country.name
+        except LocationInformation.DoesNotExist:
+            return None
+
+    def get_postal_code(self, resident):
+        """
+        Retrives the address of the resident
+        """
+        try:
+            location_information = \
+                LocationInformation.objects.get(person=resident.person)
+            return location_information.postal_code
+        except LocationInformation.DoesNotExist:
             return None

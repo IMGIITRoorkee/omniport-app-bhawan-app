@@ -18,6 +18,9 @@ class PersonalInfoSerializer(serializers.Serializer):
     hostel = serializers.SerializerMethodField(
         read_only=True,
     )
+    room_number = serializers.SerializerMethodField(
+        read_only=True
+    )
     is_admin = serializers.SerializerMethodField(
         read_only=True,
     )
@@ -40,8 +43,9 @@ class PersonalInfoSerializer(serializers.Serializer):
             'hostel',
             'room_number',
             'is_student',
+            'room_number'
         ]
-    
+
     def get_hostel(self, obj):
         """
         Returns a list of hostels a person is associated with
@@ -55,7 +59,18 @@ class PersonalInfoSerializer(serializers.Serializer):
         else:
             hostel_list = [obj.hostel.code]
         return hostel_list
-        
+
+
+    def get_room_number(self, obj):
+        """
+        Returns the room number of person
+        """
+        try:
+            resident = Resident.objects.get(person = obj.person)
+            return resident.room_number
+        except Resident.DoesNotExist:
+            return None
+
 
     def get_id(self, obj):
         """

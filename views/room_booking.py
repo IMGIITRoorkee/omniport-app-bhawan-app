@@ -27,7 +27,7 @@ class RoomBookingViewset(viewsets.ModelViewSet):
     allowed_methods = ['GET', 'PATCH', 'POST']
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
-    
+
 
     def get_queryset(self):
         """
@@ -54,6 +54,7 @@ class RoomBookingViewset(viewsets.ModelViewSet):
             sanitized_data = {}
             for data in self.request.POST:
                 sanitized_data[data] = self.request.POST[data]
+
             room_booking = RoomBooking.objects.create(
                 resident=resident,
                 **sanitized_data,
@@ -114,12 +115,14 @@ class RoomBookingViewset(viewsets.ModelViewSet):
         3. Status of a rejected request can't be changed.
         """
 
-        if prev_status == statuses.REJECTED or prev_status == statuses.APPROVED:
+        if prev_status == statuses.REJECTED:
             return False
         if new_status == statuses.FORWARDED:
             return prev_status == statuses.PENDING
         if new_status == statuses.APPROVED:
             return prev_status == statuses.FORWARDED
+        if new_status == statuses.CONFIRMED:
+            return prev_status == statuses.APPROVED
         return True
 
     def get_filters(self, request):
@@ -129,7 +132,7 @@ class RoomBookingViewset(viewsets.ModelViewSet):
         """
         filters = {}
         params = self.request.GET
-        
+
         """
         Apply the filters for statuses.
         Usage: /complaint/?status=<status_in_uppercase>

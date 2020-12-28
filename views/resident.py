@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.core.exceptions import ObjectDoesNotExist
 
 from formula_one.models.generics.contact_information import ContactInformation
+from formula_one.models.generics.location_information import LocationInformation
 from bhawan_app.models import Resident, HostelAdmin
 from bhawan_app.serializers.resident import ResidentSerializer
 from bhawan_app.managers.services import (
@@ -59,9 +60,14 @@ class ResidentViewset(viewsets.ModelViewSet):
         try:
             person_id = data['person']
             room_number = data['room_number']
+            having_computer = data['having_computer']
+            fathers_name = data['fathers_name']
+            fathers_contact = data['fathers_contact']
+            mothers_name = data['mothers_name']
+            mothers_contact = data['mothers_contact']
         except Exception:
             return Response(
-                "Invalid field values for 'person' or 'room_number' !",
+                "Invalid field values for invalid input",
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
@@ -80,13 +86,39 @@ class ResidentViewset(viewsets.ModelViewSet):
             )
         try:
             existing = Resident.objects.get(person=person)
+            try:
+                father = existing.father
+                father.full_name = fathers_name
+                father.save()
+            except:
+                father = Person.objects.create(
+                    full_name = fathers_name
+                )
+            try:
+                mother = existing.mother
+                mother.full_name = mothers_name
+                mother.save()
+            except:
+                mother = Person.objects.create(
+                    full_name = mothers_name
+                )
             existing.delete()
         except Resident.DoesNotExist:
-            pass
+            father = Person.objects.create(
+                full_name = fathers_name
+            )
+            mother = Person.objects.create(
+                full_name = mothers_name
+            )
         instance = Resident.objects.create(
             person=person,
             room_number=room_number,
+            having_computer=having_computer,
             hostel=hostel,
+            father=father,
+            fathers_contact=fathers_contact,
+            mother=mother,
+            mothers_contact=mothers_contact,
         )
         return Response(ResidentSerializer(instance).data)
 
@@ -102,9 +134,17 @@ class ResidentViewset(viewsets.ModelViewSet):
             obj = {}
             obj["enrolment_number"] = enrolment_number
             obj["resident_name"] = person.full_name
-            obj["display_picture"] = person.display_picture
+            try:
+                obj["display_picture"] = person.display_picture.url
+            except:
+                obj["display_picture"] = None
             obj["hostel_code"] = None
             obj["is_resident"] = False
+            obj["address"] = None
+            obj["city"] = None
+            obj["state"] = None
+            obj["country"] = None
+            obj["postal_code"] = None
 
             try:
                 contact_information = \
@@ -121,6 +161,21 @@ class ResidentViewset(viewsets.ModelViewSet):
                 obj["date_of_birth"] = biological_information.date_of_birth
             except BiologicalInformation.DoesNotExist:
                 obj["date_of_birth"] = None
+
+            try:
+                location_information = \
+                    LocationInformation.objects.get(person=person)
+                obj["address"]=location_information.address,
+                obj["city"]=location_information.city,
+                obj["state"]=location_information.state,
+                obj["country"]=location_information.country.name,
+                obj["postal_code"]=location_information.postal_code
+            except LocationInformation.DoesNotExist:
+                obj["address"] = None
+                obj["city"] = None
+                obj["state"] = None
+                obj["country"] = None
+                obj["postal_code"] = None
 
             try:
                 student = Student.objects.get(person=person)

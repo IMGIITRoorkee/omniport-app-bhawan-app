@@ -1,6 +1,9 @@
 import swapper
 from django.db import models
+from django.core.exceptions import ValidationError
 from formula_one.models.base import Model
+
+from bhawan_app.models.resident import Resident
 
 from bhawan_app.constants import designations
 
@@ -17,6 +20,28 @@ class HostelAdmin(Model):
     hostel = models.ForeignKey(
         to=swapper.get_model_name("kernel", "Residence"), on_delete=models.CASCADE,
     )
+
+    def save(self, *args, **kwargs):
+        """
+        If the designation is a Student Council,
+        The person must be a resident of the hostel
+        """
+        if(self.designation in designations.STUDENT_COUNCIL_LIST):
+            try:
+                resident = Resident.objects.get(person=self.person)
+                print(resident.hostel.code)
+                print(self.hostel.code)
+                if(resident.hostel.code != self.hostel.code):
+                    raise ValueError(
+                        f"{self.person.full_name} is not a resident of {self.hostel.code}"
+                    )
+            except Resident.DoesNotExist:
+                raise ValueError(
+                    f"{self.person.full_name} is not a resident of {self.hostel.code}"
+                )
+                return
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         """

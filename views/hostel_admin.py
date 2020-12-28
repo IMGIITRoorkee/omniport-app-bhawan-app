@@ -1,6 +1,8 @@
 import swapper
 from distutils.util import strtobool
 
+from django.db import IntegrityError
+
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 
@@ -100,6 +102,12 @@ class HostelAdminViewset(viewsets.ModelViewSet):
                 return Response(
                     serializer.data,
                     status=status.HTTP_201_CREATED,
+                )
+
+            except IntegrityError:
+                return Response(
+                    "One person can hold only one office and one office can be held by one person",
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             except Exception as error:
