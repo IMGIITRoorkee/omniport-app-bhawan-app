@@ -42,7 +42,8 @@ class ResidentViewset(viewsets.ModelViewSet):
 
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
-        if is_warden(request.person) or is_supervisor(request.person):
+        hostel_code = self.kwargs['hostel__code']
+        if is_warden(request.person, hostel_code) or is_supervisor(request.person, hostel_code):
             pass
         else:
             raise PermissionDenied(
@@ -60,11 +61,6 @@ class ResidentViewset(viewsets.ModelViewSet):
         try:
             person_id = data['person']
             room_number = data['room_number']
-            having_computer = data['having_computer']
-            fathers_name = data['fathers_name']
-            fathers_contact = data['fathers_contact']
-            mothers_name = data['mothers_name']
-            mothers_contact = data['mothers_contact']
         except Exception:
             return Response(
                 "Invalid field values for invalid input",
@@ -84,36 +80,71 @@ class ResidentViewset(viewsets.ModelViewSet):
                 "Residence doesn't exist !",
                 status=status.HTTP_404_NOT_FOUND,
             )
+        fathers_name = None
+        fathers_contact = None
+        try:
+            fathers_name = data['fathers_name']
+            fathers_contact = data['fathers_contact']
+        except:
+            pass
+
+        mothers_name = None
+        mothers_contact = None
+        try:
+            mothers_name = data['mothers_name']
+            mothers_contact = data['mothers_contact']
+        except:
+            pass
+
+        father = None
+        mother = None
         try:
             existing = Resident.objects.get(person=person)
             try:
                 father = existing.father
-                father.full_name = fathers_name
-                father.save()
+                if(fathers_name is not None):
+                    father.full_name = fathers_name
+                    father.save()
+                else:
+                    father.delete()
+                    father = None
             except:
+                if(fathers_name is not None):
+                    father = Person.objects.create(
+                        full_name = fathers_name
+                    )
+                else:
+                    father = None
+            try:
+                mother = existing.mother
+                if(mothers_name is not None):
+                    mother.full_name = mothers_name
+                    mother.save()
+                else:
+                    mother.delete()
+                    mother = None
+            except:
+                if(mothers_name is not None):
+                    mother = Person.objects.create(
+                        full_name = mothers_name
+                    )
+                else:
+                    mother = None
+
+            existing.delete()
+
+        except Resident.DoesNotExist:
+            if(fathers_name is not None):
                 father = Person.objects.create(
                     full_name = fathers_name
                 )
-            try:
-                mother = existing.mother
-                mother.full_name = mothers_name
-                mother.save()
-            except:
+            if(mothers_name is not None):
                 mother = Person.objects.create(
                     full_name = mothers_name
                 )
-            existing.delete()
-        except Resident.DoesNotExist:
-            father = Person.objects.create(
-                full_name = fathers_name
-            )
-            mother = Person.objects.create(
-                full_name = mothers_name
-            )
         instance = Resident.objects.create(
             person=person,
             room_number=room_number,
-            having_computer=having_computer,
             hostel=hostel,
             father=father,
             fathers_contact=fathers_contact,

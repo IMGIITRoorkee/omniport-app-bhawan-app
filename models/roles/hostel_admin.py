@@ -8,6 +8,7 @@ from bhawan_app.models.resident import Resident
 from bhawan_app.constants import designations
 
 
+
 class HostelAdmin(Model):
     """
     This model holds information pertaining to the administrator of a hostel
@@ -21,7 +22,7 @@ class HostelAdmin(Model):
         to=swapper.get_model_name("kernel", "Residence"), on_delete=models.CASCADE,
     )
 
-    def save(self, *args, **kwargs):
+    def clean(self):
         """
         If the designation is a Student Council,
         The person must be a resident of the hostel
@@ -29,18 +30,23 @@ class HostelAdmin(Model):
         if(self.designation in designations.STUDENT_COUNCIL_LIST):
             try:
                 resident = Resident.objects.get(person=self.person)
-                print(resident.hostel.code)
-                print(self.hostel.code)
-                if(resident.hostel.code != self.hostel.code):
-                    raise ValueError(
+                if(resident.hostel != self.hostel):
+                    raise ValidationError(
                         f"{self.person.full_name} is not a resident of {self.hostel.code}"
                     )
             except Resident.DoesNotExist:
-                raise ValueError(
+                raise ValidationError(
                     f"{self.person.full_name} is not a resident of {self.hostel.code}"
                 )
-                return
 
+    def save(self, *args, **kwargs):
+        """
+        Override save method to check the custom validations written in clean
+        method
+        """
+
+        # Intrinsically calls the `clean` method
+        self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):

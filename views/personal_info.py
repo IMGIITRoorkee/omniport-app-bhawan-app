@@ -6,7 +6,6 @@ from rest_framework.response import Response
 
 from bhawan_app.serializers.personal_info import PersonalInfoSerializer
 from bhawan_app.models import Resident, HostelAdmin
-# ResidentialInformation = swapper.load_model('Kernel', 'ResidentialInformation')
 
 
 class PersonalInfoView(generics.RetrieveAPIView):
@@ -27,6 +26,8 @@ class PersonalInfoView(generics.RetrieveAPIView):
         """
 
         person = request.person
+        resident = None
+        admin = None
         try:
             resident = Resident.objects.get(person=person)
         except Resident.DoesNotExist:

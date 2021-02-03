@@ -1,5 +1,7 @@
 import swapper
 from django.db import models
+from django.core.exceptions import ValidationError
+
 from formula_one.models.base import Model
 
 
@@ -19,10 +21,10 @@ class Resident(Model):
     room_number = models.CharField(
         max_length=10,
     )
-    having_computer = models.BooleanField(default=True)
     father = models.OneToOneField(
         to=swapper.get_model_name("Kernel", "Person"), on_delete=models.CASCADE,
         null=True,
+        blank=True,
         related_name='residents_father'
     )
     fathers_contact = models.CharField(
@@ -33,6 +35,7 @@ class Resident(Model):
     mother = models.OneToOneField(
         to=swapper.get_model_name("Kernel", "Person"), on_delete=models.CASCADE,
         null=True,
+        blank=True,
         related_name='residents_mother'
     )
     mothers_contact = models.CharField(
@@ -41,18 +44,28 @@ class Resident(Model):
         blank=True
     )
 
-    def save(self, *args, **kwargs):
+    def clean(self):
         """
         A resident of any Bhawan must be Student
         """
-        try:
-            Student = swapper.load_model('Kernel', 'Student')
-            student=Student.objects.get(person=self.person)
-            super().save(*args, **kwargs)
-        except Student.DoesNotExist:
-            raise ValueError(
+
+        Student = swapper.load_model('Kernel', 'Student')
+        is_student = Student.objects.filter(person=self.person).exists()
+        if not is_student:
+            raise ValidationError(
                     f"{self.person.full_name} is not a student"
             )
+
+
+    def save(self, *args, **kwargs):
+        """
+        Override save method to check the custom validations written in clean
+        method
+        """
+
+        # Intrinsically calls the `clean` method
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         """

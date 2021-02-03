@@ -39,7 +39,7 @@ class ComplaintViewset(viewsets.ModelViewSet):
                 status.HTTP_403_FORBIDDEN,
             )
 
-        if is_warden(request.person) or is_supervisor(request.person):
+        if is_warden(request.person, hostel__code) or is_supervisor(request.person, hostel__code):
             count = instance.failed_attempts
             updates = {}
             if count < 3:
@@ -108,8 +108,8 @@ class ComplaintViewset(viewsets.ModelViewSet):
     
     def partial_update(self, request, hostel__code, pk=None):
         instance = get_object_or_404(Complaint, pk=pk)
-        if not is_warden(request.person) and \
-                not is_supervisor(request.person):
+        if not is_warden(request.person, hostel__code) and \
+                not is_supervisor(request.person, hostel__code):
             return Response(
                 "Only Supervisor and Warden are allowed to perform this action!",
                 status=status.HTTP_403_FORBIDDEN,
@@ -157,9 +157,9 @@ class ComplaintViewset(viewsets.ModelViewSet):
         filters['resident__hostel__code']= self.kwargs["hostel__code"]
 
         """
-        If not hostel admin, list the booking by the person only. Person is the 
+        If not hostel admin, list the booking by the person only. Person is the
         currently authenticated user.
         """
-        if not is_hostel_admin(request.person):
+        if not is_hostel_admin(request.person, self.kwargs["hostel__code"]):
             filters['resident__person'] = request.person.id
         return filters

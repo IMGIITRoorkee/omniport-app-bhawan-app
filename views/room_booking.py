@@ -14,7 +14,6 @@ from bhawan_app.constants import statuses
 from bhawan_app.pagination.custom_pagination import CustomPagination
 
 Person = swapper.load_model('kernel', 'Person')
-ResidentialInformation = swapper.load_model('kernel', 'ResidentialInformation')
 
 
 class RoomBookingViewset(viewsets.ModelViewSet):
@@ -86,12 +85,12 @@ class RoomBookingViewset(viewsets.ModelViewSet):
         instance = get_object_or_404(RoomBooking, pk=pk)
         if 'status' in data.keys():
             if data['status'] == statuses.FORWARDED:
-                if not is_supervisor(request.person):
+                if not is_supervisor(request.person, hostel__code):
                     return Response(
                         "Only Supervisor is allowed to perform this action!",
                         status=status.HTTP_403_FORBIDDEN,
                     )
-            elif not is_warden(request.person):
+            elif not is_warden(request.person, hostel__code):
                 return Response(
                     "Only Warden is allowed to perform this action!",
                     status=status.HTTP_403_FORBIDDEN,
@@ -160,6 +159,6 @@ class RoomBookingViewset(viewsets.ModelViewSet):
         """
         If not hostel admin, list the booking by the person only.
         """
-        if not is_hostel_admin(request.person):
+        if not is_hostel_admin(request.person, self.kwargs["hostel__code"]):
             filters['resident__person'] = request.person.id
         return filters

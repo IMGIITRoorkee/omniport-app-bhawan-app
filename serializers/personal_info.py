@@ -5,8 +5,9 @@ from rest_framework import serializers
 from kernel.managers.get_role import get_role
 from formula_one.mixins.period_mixin import ActiveStatus
 
-from bhawan_app.managers.services import get_hostel_admin
+from bhawan_app.managers.services import get_hostel_admin, is_warden
 from bhawan_app.models import Resident, HostelAdmin
+from bhawan_app.constants import designations
 
 
 
@@ -19,11 +20,14 @@ class PersonalInfoSerializer(serializers.Serializer):
         read_only=True,
     )
     room_number = serializers.SerializerMethodField(
-        read_only=True
-    )
-    is_admin = serializers.SerializerMethodField(
         read_only=True,
     )
+    # is_admin = serializers.SerializerMethodField(
+    #     read_only=True,
+    # )
+    # is_warden = serializers.SerializerMethodField(
+    #     read_only=True,
+    # )
     is_student = serializers.SerializerMethodField(
         read_only=True,
     )
@@ -43,7 +47,8 @@ class PersonalInfoSerializer(serializers.Serializer):
             'hostel',
             'room_number',
             'is_student',
-            'room_number'
+            'room_number',
+            'is_warden',
         ]
 
     def get_hostel(self, obj):
@@ -55,9 +60,23 @@ class PersonalInfoSerializer(serializers.Serializer):
         hostel_list = []
         if isinstance(obj, HostelAdmin):
             hostel_list = HostelAdmin.objects\
-                .filter(person=obj.person).values_list('hostel__code', flat=True)
+                .filter(person=obj.person).values_list('hostel__code', 'designation')
+            try:
+                resident = Resident.objects.get(person = obj.person)
+                hostels = []
+                student_council = False
+                for hostel in hostel_list:
+                    hostels.append(hostel)
+                    if hostel[1] in designations.STUDENT_COUNCIL_LIST:
+                        student_council = True
+
+                if not student_council:
+                    hostels.append([resident.hostel.code, None])
+                return hostels
+            except:
+                return hostel_list
         else:
-            hostel_list = [obj.hostel.code]
+            hostel_list = [[obj.hostel.code, None]]
         return hostel_list
 
 
@@ -98,18 +117,28 @@ class PersonalInfoSerializer(serializers.Serializer):
         else:
             return obj.person.id
 
-    def get_is_admin(self, obj):
-        """
-        Checks if the authenticated user is a hostel administrator or not
-        :param obj: an instance of HostelAdmin or Resident
-        :return: a boolean if the authenticated user is a hostel administrator
-        or not
-        """
+    # def get_is_admin(self, obj):
+    #     """
+    #     Checks if the authenticated user is a hostel administrator or not
+    #     :param obj: an instance of HostelAdmin or Resident
+    #     :return: a boolean if the authenticated user is a hostel administrator
+    #     or not
+    #     """
 
-        if get_hostel_admin(obj.person) is None:
-            return False
-        return True
-    
+    #     if get_hostel_admin(obj.person) is None:
+    #         return False
+    #     return True
+
+    # def get_is_warden(self, obj):
+    #     """
+    #     Checks if the authenticated user is a hostel warden or not
+    #     :param obj: an instance of HostelAdmin or Resident
+    #     :return: a boolean if the authenticated user is a warden
+    #     or not
+    #     """
+
+    #     return is_warden(obj.person)
+
     def get_is_student(self, obj):
         """
         Checks if the authenticated user is a student or not

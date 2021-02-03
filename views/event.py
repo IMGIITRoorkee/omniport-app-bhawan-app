@@ -40,7 +40,7 @@ class EventViewset(viewsets.ModelViewSet):
         Update the event instance iff the logged in user is Admin
         :return: Updated instance
         """
-        if is_hostel_admin(request.person):
+        if is_hostel_admin(request.person, hostel__code):
             return super().partial_update(request, hostel__code, pk)
             
         return Response(

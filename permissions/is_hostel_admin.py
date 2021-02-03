@@ -17,5 +17,5 @@ class IsHostelAdmin(permissions.BasePermission):
         checked
         :return: if the the person is allowed or not
         """
-
-        return is_hostel_admin(request.user.person)
+        hostel_code=request.parser_context['kwargs']['hostel__code']
+        return is_hostel_admin(request.user.person, hostel_code)

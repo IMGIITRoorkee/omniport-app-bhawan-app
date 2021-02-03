@@ -60,7 +60,7 @@ class HostelAdminViewset(viewsets.ModelViewSet):
         return filters
 
     def create(self, request, hostel__code, pk=None):
-        if is_warden(request.person):
+        if is_warden(request.person, hostel__code):
             try:
                 data = request.data
                 serializer = self.get_serializer(data=data)
@@ -122,7 +122,7 @@ class HostelAdminViewset(viewsets.ModelViewSet):
         )
 
     def partial_update(self, request, hostel__code, pk=None):
-        if is_warden(request.person):
+        if is_warden(request.person, hostel__code):
             instance = self.get_object()
             serializer = self.get_serializer(
                 instance,

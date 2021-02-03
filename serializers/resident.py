@@ -57,7 +57,6 @@ class ResidentSerializer(serializers.ModelSerializer):
             "id",
             "resident_name",
             "room_number",
-            "having_computer",
             "hostel_code",
             "email_address",
             "enrolment_number",

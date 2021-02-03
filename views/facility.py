@@ -45,7 +45,7 @@ class FacilityViewset(viewsets.ModelViewSet):
         :return: status code of the request
         """
 
-        if not is_hostel_admin(request.person):
+        if not is_hostel_admin(request.person, hostel__code):
             return Response(
             {"You are not allowed to perform this action !"},
             status=status.HTTP_403_FORBIDDEN,
@@ -68,7 +68,7 @@ class FacilityViewset(viewsets.ModelViewSet):
                 timing_object = Timing.objects.create(**timing)
                 facility.timings.add(timing_object)
 
-            return Response('Facility created', status=status.HTTP_201_CREATED)
+            return Response(FacilitySerializer(facility).data, status=status.HTTP_201_CREATED)
         except Exception:
             return Response('Bad request', status=status.HTTP_400_BAD_REQUEST)
 
@@ -78,7 +78,7 @@ class FacilityViewset(viewsets.ModelViewSet):
         Update facility instance if user has required permissions.
         :return: updated facility instance
         """
-        if is_hostel_admin(request.person):
+        if is_hostel_admin(request.person, hostel__code):
             return super().partial_update(request, hostel__code, pk)
 
         return Response(
@@ -90,7 +90,7 @@ class FacilityViewset(viewsets.ModelViewSet):
         """
         Delete facility instance if user has required permissions.
         """
-        if not is_hostel_admin(request.person):
+        if not is_hostel_admin(request.person, hostel__code):
             return Response(
                 {"You are not allowed to perform this action !"},
                 status=status.HTTP_403_FORBIDDEN,

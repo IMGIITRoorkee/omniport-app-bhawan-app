@@ -53,6 +53,8 @@ class ConstantViewset(
             **reverse_student_council_map,
             **reverse_administrative_council_map,
         }
+        response['student_council'] = designations.STUDENT_COUNCIL_LIST
+        response['administrative_council'] = designations.ADMINISTRATIVE_COUNCIL_LIST
         response['complaint_types'] = reverse_complaint_types_map
         response['statues'] = {
             'COMLAINT_STATUSES': reverse_complaint_statuses_map,

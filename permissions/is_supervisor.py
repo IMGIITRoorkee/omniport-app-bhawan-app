@@ -16,6 +16,7 @@ class IsSupervisor(permissions.BasePermission):
         :return: if the the person is allowed or not
         """
         person = request.person
-        if is_hostel_admin(person):
+        hostel_code=request.parser_context['kwargs']['hostel__code']
+        if is_hostel_admin(person, hostel_code):
             return person.hosteladmin.designation == designations.SUPERVISOR
         return False
