@@ -1,4 +1,5 @@
 import swapper
+import pandas as pd
 
 from datetime import datetime
 from distutils.util import strtobool
@@ -9,8 +10,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from django.core.exceptions import ValidationError
-
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
 
 from formula_one.models.generics.contact_information import ContactInformation
 from formula_one.models.generics.location_information import LocationInformation
@@ -301,10 +302,180 @@ class ResidentViewset(viewsets.ModelViewSet):
 
         return queryset
 
+
     @action(detail=False, methods=['get'])
-    def download(self, request):
+    def download(self, request, hostel__code):
         """
         This method exports a csv corresponding to the list
         of students
         """
-        pass
+        params = self.request.GET
+        queryset = Resident.objects.all()
+        queryset = self.apply_filters(self.request, queryset)
+        data = {
+            'Enrolment No.': [],
+            'Name': [],
+            'Room No.': [],
+            'Contact No': [],
+            'Email': [],
+            'Current Year': [],
+            'Department': [],
+            'Date of Birth': [],
+            'Address': [],
+            'City': [],
+            'State': [],
+            'Country': [],
+            'Postal Code': [],
+            'display_picture': [],
+        }
+        for resident in queryset:
+            try:
+                data['Enrolment No.'].append(self.get_enrolment_number(resident))
+                data['Name'].append(resident.person.full_name)
+                data['Room No.'].append(resident.room_number)
+                data['Contact No'].append(self.get_phone_number(resident))
+                data['Email'].append(self.get_email_address(resident))
+                data['Current Year'].append(self.get_current_year(resident))
+                data['Department'].append(self.get_department(resident))
+                data['Date of Birth'].append(self.get_date_of_birth(resident))
+                data['Address'].append(self.get_address(resident))
+                data['City'].append(self.get_city(resident))
+                data['State'].append(self.get_state(resident))
+                data['Country'].append(self.get_country(resident))
+                data['Postal Code'].append(self.get_postal_code(resident))
+                data['display_picture'].append(resident.person.display_picture)
+            except IndexError:
+                pass
+
+        file_name = f'{hostel__code}_students_list.csv'
+        df = pd.DataFrame(data)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=' + file_name
+        df.to_csv(path_or_buf=response, index=False)
+        return response
+
+    def get_enrolment_number(self, resident):
+        """
+        Retrives the enrolment number of a resident
+        if he is a student
+        """
+        try:
+            student = Student.objects.get(person=resident.person)
+            return student.enrolment_number
+        except Student.DoesNotExist:
+            return None
+
+    def get_email_address(self, resident):
+        """
+        Retrieves the email address for a resident.
+        """
+        try:
+            contact_information = \
+                ContactInformation.objects.get(person=resident.person)
+            return contact_information.email_address
+        except ContactInformation.DoesNotExist:
+            return None
+
+    def get_current_year(self, resident):
+        """
+        Retrives the current year of a resident
+        if he is a student
+        """
+        try:
+            student = Student.objects.get(person=resident.person)
+            return student.current_year
+        except Student.DoesNotExist:
+            return None
+
+    def get_department(self, resident):
+        """
+        Retrives the department of a resident
+        if he is a student
+        """
+        try:
+            student = Student.objects.get(person=resident.person)
+            branch = Branch.objects.get(student=student)
+            return branch.name
+        except Student.DoesNotExist:
+            return None
+        except Branch.DoesNotExist:
+            return None
+
+    def get_phone_number(self, resident):
+        """
+        Retrives the phone number of a resident
+        if he is a student
+        """
+        try:
+            contact_information = \
+                ContactInformation.objects.get(person=resident.person)
+            return contact_information.primary_phone_number
+        except ContactInformation.DoesNotExist:
+            return None
+
+    def get_date_of_birth(self, resident):
+        """
+        Retrives the date of birth of a resident
+        if he is a student
+        """
+        try:
+            biological_information = \
+                BiologicalInformation.objects.get(person=resident.person)
+            return biological_information.date_of_birth
+        except BiologicalInformation.DoesNotExist:
+            return None
+
+    def get_address(self, resident):
+        """
+        Retrives the address of the resident
+        """
+        try:
+            location_information = \
+                LocationInformation.objects.get(person=resident.person)
+            return location_information.address
+        except LocationInformation.DoesNotExist:
+            return None
+
+    def get_city(self, resident):
+        """
+        Retrives the city of the resident
+        """
+        try:
+            location_information = \
+                LocationInformation.objects.get(person=resident.person)
+            return location_information.city
+        except LocationInformation.DoesNotExist:
+            return None
+
+    def get_state(self, resident):
+        """
+        Retrives the state of the resident
+        """
+        try:
+            location_information = \
+                LocationInformation.objects.get(person=resident.person)
+            return location_information.state
+        except LocationInformation.DoesNotExist:
+            return None
+
+    def get_country(self, resident):
+        """
+        Retrives the address of the resident
+        """
+        try:
+            location_information = \
+                LocationInformation.objects.get(person=resident.person)
+            return location_information.country.name
+        except LocationInformation.DoesNotExist:
+            return None
+
+    def get_postal_code(self, resident):
+        """
+        Retrives the address of the resident
+        """
+        try:
+            location_information = \
+                LocationInformation.objects.get(person=resident.person)
+            return location_information.postal_code
+        except LocationInformation.DoesNotExist:
+            return None
