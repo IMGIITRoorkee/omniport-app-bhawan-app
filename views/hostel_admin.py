@@ -84,13 +84,13 @@ class HostelAdminViewset(viewsets.ModelViewSet):
                     hostel_codes = list( residents.values_list('hostel__code', flat=True))
                     if hostel__code not in hostel_codes:
                         return Response(
-                            f"Person {person.full_name} is not a resident of {hostel__code}",
+                            f"{person.full_name} is not a resident of {hostel__code}",
                             status=status.HTTP_403_FORBIDDEN,
                         )
 
                 if designation in designations.STUDENT_COUNCIL_LIST and not is_resident:
                     return Response(
-                        f"Person {person.full_name} is not a registered resident",
+                        f"{person.full_name} is not a registered resident",
                         status=status.HTTP_403_FORBIDDEN,
                     )
 
@@ -123,19 +123,32 @@ class HostelAdminViewset(viewsets.ModelViewSet):
 
     def partial_update(self, request, hostel__code, pk=None):
         if is_warden(request.person, hostel__code):
-            instance = self.get_object()
-            serializer = self.get_serializer(
-                instance,
-                data=request.data,
-                partial=True,
-            )
-            serializer.is_valid(raise_exception=True)
-            if 'person' in request.data.keys():
-                person = Person.objects.get(pk=request.data['person'])
-                serializer.save(person=person)
-            else:
-                serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            try:
+                instance = self.get_object()
+                serializer = self.get_serializer(
+                    instance,
+                    data=request.data,
+                    partial=True,
+                )
+                serializer.is_valid(raise_exception=True)
+                if 'person' in request.data.keys():
+                    person = Person.objects.get(pk=request.data['person'])
+                    serializer.save(person=person)
+                else:
+                    serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+            except IntegrityError:
+                return Response(
+                    "One person can hold only one office and one office can be held by one person",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            except Exception as error:
+                return Response(
+                    str(error),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         return Response(
             'Only warden is allowed to perform this action !',
