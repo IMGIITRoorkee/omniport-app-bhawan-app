@@ -21,6 +21,7 @@ class Resident(Model):
     room_number = models.CharField(
         max_length=10,
     )
+    is_resident = models.BooleanField(default=True)
     father = models.OneToOneField(
         to=swapper.get_model_name("Kernel", "Person"), on_delete=models.CASCADE,
         null=True,

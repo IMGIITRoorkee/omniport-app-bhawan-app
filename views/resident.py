@@ -53,7 +53,7 @@ class ResidentViewset(viewsets.ModelViewSet):
 
     def get_queryset(self):
         params = self.request.GET
-        queryset = Resident.objects.all()
+        queryset = Resident.objects.filter(is_resident = True)
         queryset = self.apply_filters(self.request, queryset)
         return queryset
 
@@ -150,6 +150,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             father=father,
             fathers_contact=fathers_contact,
             mother=mother,
+            is_resident=True,
             mothers_contact=mothers_contact,
         )
         return Response(ResidentSerializer(instance).data)
@@ -302,6 +303,40 @@ class ResidentViewset(viewsets.ModelViewSet):
 
         return queryset
 
+    @action(detail=True, methods=['get'])
+    def deregister(self, request, hostel__code, pk):
+        """
+        This method deregisters a student from the Bhawan
+        """
+        try:
+            person = Person.objects.get(pk=pk)
+            hostel = Residence.objects.get(code=hostel__code)
+            resident = Resident.objects.get(person=person, hostel=hostel, is_resident=True)
+            resident.is_resident = False
+            resident.save()
+            return Response(
+                f"{person.full_name} succesfully deregistered from {hostel__code}"
+            )
+
+        except Person.DoesNotExist:
+            error = {
+                "error": "There is no such person on Channeli"
+            }
+            return Response(
+                error,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        except Resident.DoesNotExist:
+            error = {
+                "error": f"{person.full_name} is not a resident of {hostel__code}"
+            }
+            return Response(
+                error,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
 
     @action(detail=False, methods=['get'])
     def download(self, request, hostel__code):
@@ -310,7 +345,7 @@ class ResidentViewset(viewsets.ModelViewSet):
         of students
         """
         params = self.request.GET
-        queryset = Resident.objects.all()
+        queryset = Resident.objects.filter(is_resident = True)
         queryset = self.apply_filters(self.request, queryset)
         data = {
             'Enrolment No.': [],
