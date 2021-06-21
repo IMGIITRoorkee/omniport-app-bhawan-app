@@ -8,6 +8,7 @@ CARPENTRY = "car"
 CLEANING = "cle"
 MESS = "mes"
 OTHER = "oth"
+FEEDBACK = "fdb"
 
 COMPLAINT_TYPES = (
     (ELECTRIC, "Electric"),
@@ -15,6 +16,7 @@ COMPLAINT_TYPES = (
     (CARPENTRY, "Carpentry"),
     (CLEANING, "Cleaning"),
     (MESS, "Mess"),
+    (FEEDBACK, "feedback"),
     (OTHER, "Other"),
 )
 COMPLAINT_TYPES_MAP = {
@@ -22,5 +24,7 @@ COMPLAINT_TYPES_MAP = {
     'TOILET': TOILET,
     'CARPENTRY': CARPENTRY,
     'CLEANING': CLEANING,
+    'MESS': MESS,
+    'FEEDBACK': FEEDBACK,
     'OTHER': OTHER,
 }
