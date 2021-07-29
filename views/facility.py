@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from bhawan_app.models import Facility
 from bhawan_app.models import Timing
 from bhawan_app.serializers.facility import FacilitySerializer
-from bhawan_app.managers.services import is_hostel_admin
+from bhawan_app.managers.services import is_hostel_admin, is_global_admin
 
 Residence = swapper.load_model('kernel', 'Residence')
 
@@ -45,7 +45,7 @@ class FacilityViewset(viewsets.ModelViewSet):
         :return: status code of the request
         """
 
-        if not is_hostel_admin(request.person, hostel__code):
+        if not is_global_admin(request.person) and not is_hostel_admin(request.person, hostel__code):
             return Response(
             {"You are not allowed to perform this action !"},
             status=status.HTTP_403_FORBIDDEN,
@@ -78,7 +78,7 @@ class FacilityViewset(viewsets.ModelViewSet):
         Update facility instance if user has required permissions.
         :return: updated facility instance
         """
-        if is_hostel_admin(request.person, hostel__code):
+        if is_hostel_admin(request.person, hostel__code) or is_global_admin(request.person):
             return super().partial_update(request, hostel__code, pk)
 
         return Response(
@@ -90,7 +90,7 @@ class FacilityViewset(viewsets.ModelViewSet):
         """
         Delete facility instance if user has required permissions.
         """
-        if not is_hostel_admin(request.person, hostel__code):
+        if not is_hostel_admin(request.person, hostel__code) and not is_global_admin(req.person):
             return Response(
                 {"You are not allowed to perform this action !"},
                 status=status.HTTP_403_FORBIDDEN,

@@ -20,7 +20,8 @@ from bhawan_app.serializers.resident import ResidentSerializer
 from bhawan_app.managers.services import (
     is_warden,
     is_supervisor,
-    is_hostel_admin
+    is_hostel_admin,
+    is_global_admin,
 )
 from bhawan_app.pagination.custom_pagination import CustomPagination
 
@@ -30,6 +31,7 @@ Residence = swapper.load_model("kernel", "Residence")
 Student = swapper.load_model('Kernel', 'Student')
 Branch = swapper.load_model('Kernel', 'Branch')
 BiologicalInformation = swapper.load_model('Kernel', 'BiologicalInformation')
+PoliticalInformation = swapper.load_model('kernel', 'PoliticalInformation')
 
 class ResidentViewset(viewsets.ModelViewSet):
     """
@@ -44,7 +46,7 @@ class ResidentViewset(viewsets.ModelViewSet):
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
         hostel_code = self.kwargs['hostel__code']
-        if is_warden(request.person, hostel_code) or is_supervisor(request.person, hostel_code):
+        if is_warden(request.person, hostel_code) or is_supervisor(request.person, hostel_code) or is_global_admin(request.person):
             pass
         else:
             raise PermissionDenied(
@@ -178,12 +180,14 @@ class ResidentViewset(viewsets.ModelViewSet):
             obj["state"] = None
             obj["country"] = None
             obj["postal_code"] = None
+            obj["reservation_category"] = None
 
             try:
                 contact_information = \
-                    ContactInformation.objects.get(person=person)
-                obj["email_address"] = contact_information.email_address
-                obj["phone_number"] = contact_information.primary_phone_number
+                    ContactInformation.objects.filter(person=person).first()
+                if(contact_information):
+                    obj["email_address"] = contact_information.email_address
+                    obj["phone_number"] = contact_information.primary_phone_number
             except ContactInformation.DoesNotExist:
                 obj["email_address"] = None
                 obj["phone_number"] = None
@@ -196,13 +200,22 @@ class ResidentViewset(viewsets.ModelViewSet):
                 obj["date_of_birth"] = None
 
             try:
+                category_information = \
+                    PoliticalInformation.objects.get(person=person)
+                obj["reservation_category"] = category_information.reservation_category
+            except PoliticalInformation.DoesNotExist:
+                obj["reservation_category"] = None
+
+
+            try:
                 location_information = \
-                    LocationInformation.objects.get(person=person)
-                obj["address"]=location_information.address,
-                obj["city"]=location_information.city,
-                obj["state"]=location_information.state,
-                obj["country"]=location_information.country.name,
-                obj["postal_code"]=location_information.postal_code
+                    LocationInformation.objects.filter(person=person).first()
+                if(location_information):
+                    obj["address"]=location_information.address,
+                    obj["city"]=location_information.city,
+                    obj["state"]=location_information.state,
+                    obj["country"]=location_information.country.name,
+                    obj["postal_code"]=location_information.postal_code
             except LocationInformation.DoesNotExist:
                 obj["address"] = None
                 obj["city"] = None
@@ -213,7 +226,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             try:
                 student = Student.objects.get(person=person)
                 branch = Branch.objects.get(student=student)
-                obj["department"] = branch.name
+                obj["department"] = [branch.name, branch.degree.name]
                 obj["current_year"] = student.current_year
             except Student.DoesNotExist:
                 obj["department"] = None
@@ -355,30 +368,35 @@ class ResidentViewset(viewsets.ModelViewSet):
             'Email': [],
             'Current Year': [],
             'Department': [],
+            'Degree': [],
             'Date of Birth': [],
             'Address': [],
             'City': [],
             'State': [],
             'Country': [],
             'Postal Code': [],
-            'display_picture': [],
+            'Display Picture': [],
+            'Reservation Category': [],
         }
         for resident in queryset:
             try:
+                department = self.get_department(resident)
                 data['Enrolment No.'].append(self.get_enrolment_number(resident))
                 data['Name'].append(resident.person.full_name)
                 data['Room No.'].append(resident.room_number)
                 data['Contact No'].append(self.get_phone_number(resident))
                 data['Email'].append(self.get_email_address(resident))
                 data['Current Year'].append(self.get_current_year(resident))
-                data['Department'].append(self.get_department(resident))
+                data['Degree'].append(department[1])
+                data['Department'].append(department[0])
                 data['Date of Birth'].append(self.get_date_of_birth(resident))
                 data['Address'].append(self.get_address(resident))
                 data['City'].append(self.get_city(resident))
                 data['State'].append(self.get_state(resident))
                 data['Country'].append(self.get_country(resident))
                 data['Postal Code'].append(self.get_postal_code(resident))
-                data['display_picture'].append(resident.person.display_picture)
+                data['Display Picture'].append(resident.person.display_picture)
+                data['Reservation Category'].append(self.get_reservation_category(resident))
             except IndexError:
                 pass
 
@@ -406,10 +424,22 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         try:
             contact_information = \
-                ContactInformation.objects.get(person=resident.person)
-            return contact_information.email_address
+                ContactInformation.objects.filter(person=resident.person).first()
+            if(contact_information):
+                return contact_information.email_address
         except ContactInformation.DoesNotExist:
             return None
+        return None
+
+    def get_reservation_category(self, resident):
+        try:
+            category_information = \
+                PoliticalInformation.objects.get(person=resident.person)
+            return category_information.reservation_category
+        except PoliticalInformation.DoesNotExist:
+            return None
+        return None
+
 
     def get_current_year(self, resident):
         """
@@ -421,6 +451,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             return student.current_year
         except Student.DoesNotExist:
             return None
+        return None
 
     def get_department(self, resident):
         """
@@ -430,11 +461,12 @@ class ResidentViewset(viewsets.ModelViewSet):
         try:
             student = Student.objects.get(person=resident.person)
             branch = Branch.objects.get(student=student)
-            return branch.name
+            return [branch.name, branch.degree.name]
         except Student.DoesNotExist:
-            return None
+            return [None, None]
         except Branch.DoesNotExist:
-            return None
+            return [None, None]
+        return [None, None]
 
     def get_phone_number(self, resident):
         """
@@ -443,10 +475,12 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         try:
             contact_information = \
-                ContactInformation.objects.get(person=resident.person)
-            return contact_information.primary_phone_number
+                ContactInformation.objects.filter(person=resident.person).first()
+            if(contact_information):
+                return contact_information.primary_phone_number
         except ContactInformation.DoesNotExist:
             return None
+        return None
 
     def get_date_of_birth(self, resident):
         """
@@ -459,6 +493,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             return biological_information.date_of_birth
         except BiologicalInformation.DoesNotExist:
             return None
+        return None
 
     def get_address(self, resident):
         """
@@ -466,10 +501,12 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         try:
             location_information = \
-                LocationInformation.objects.get(person=resident.person)
-            return location_information.address
+                LocationInformation.objects.filter(person=resident.person).first()
+            if(location_information):
+                return location_information.address
         except LocationInformation.DoesNotExist:
             return None
+        return None
 
     def get_city(self, resident):
         """
@@ -477,10 +514,12 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         try:
             location_information = \
-                LocationInformation.objects.get(person=resident.person)
-            return location_information.city
+                LocationInformation.objects.filter(person=resident.person).first()
+            if(location_information):
+                return location_information.city
         except LocationInformation.DoesNotExist:
             return None
+        return None
 
     def get_state(self, resident):
         """
@@ -488,10 +527,12 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         try:
             location_information = \
-                LocationInformation.objects.get(person=resident.person)
-            return location_information.state
+                LocationInformation.objects.filter(person=resident.person).first()
+            if(location_information):
+                return location_information.state
         except LocationInformation.DoesNotExist:
             return None
+        return None
 
     def get_country(self, resident):
         """
@@ -499,10 +540,12 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         try:
             location_information = \
-                LocationInformation.objects.get(person=resident.person)
-            return location_information.country.name
+                LocationInformation.objects.filter(person=resident.person).first()
+            if(location_information):
+                return location_information.country.name
         except LocationInformation.DoesNotExist:
             return None
+        return None
 
     def get_postal_code(self, resident):
         """
@@ -510,7 +553,9 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         try:
             location_information = \
-                LocationInformation.objects.get(person=resident.person)
-            return location_information.postal_code
+                LocationInformation.objects.filter(person=resident.person).first()
+            if(location_information):
+                return location_information.postal_code
         except LocationInformation.DoesNotExist:
             return None
+        return None

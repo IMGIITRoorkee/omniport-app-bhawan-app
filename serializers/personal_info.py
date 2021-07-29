@@ -5,10 +5,11 @@ from rest_framework import serializers
 from kernel.managers.get_role import get_role
 from formula_one.mixins.period_mixin import ActiveStatus
 
-from bhawan_app.managers.services import get_hostel_admin, is_warden
+from bhawan_app.managers.services import get_hostel_admin, is_warden, is_global_admin
 from bhawan_app.models import Resident, HostelAdmin
 from bhawan_app.constants import designations
 
+Hostel = swapper.load_model("Kernel", "Residence")
 
 
 class PersonalInfoSerializer(serializers.Serializer):
@@ -58,6 +59,20 @@ class PersonalInfoSerializer(serializers.Serializer):
         :return: a unique identification ID for the logged in person
         """
         hostel_list = []
+        global_admin = is_global_admin(obj.person)
+        if is_global_admin(obj.person):
+            # hostel_list = HostelAdmin
+            hostel_codes = Hostel.objects.all().values_list('code', flat=True)
+            for hostel in hostel_codes:
+                hostel_list.append([hostel, global_admin.designation])
+            try:
+                resident = Resident.objects.get(person = obj.person)
+                hostel_list.append([resident.hostel.code, None])
+            except:
+                pass
+            return hostel_list
+
+
         if isinstance(obj, HostelAdmin):
             hostel_list = HostelAdmin.objects\
                 .filter(person=obj.person).values_list('hostel__code', 'designation')

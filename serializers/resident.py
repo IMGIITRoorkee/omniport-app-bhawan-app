@@ -11,6 +11,7 @@ from formula_one.models.generics.location_information import LocationInformation
 Student = swapper.load_model('Kernel', 'Student')
 Branch = swapper.load_model('Kernel', 'Branch')
 BiologicalInformation = swapper.load_model('Kernel', 'BiologicalInformation')
+PoliticalInformation = swapper.load_model('kernel', 'PoliticalInformation')
 
 
 class ResidentSerializer(serializers.ModelSerializer):
@@ -50,6 +51,7 @@ class ResidentSerializer(serializers.ModelSerializer):
     state = serializers.SerializerMethodField()
     country = serializers.SerializerMethodField()
     postal_code = serializers.SerializerMethodField()
+    reservation_category = serializers.SerializerMethodField()
 
     class Meta:
         model = Resident
@@ -75,6 +77,7 @@ class ResidentSerializer(serializers.ModelSerializer):
             "fathers_contact",
             "mothers_name",
             "mothers_contact",
+            "reservation_category",
         ]
         extra_kwargs = {
             'room_number': { 'read_only': True },
@@ -86,9 +89,18 @@ class ResidentSerializer(serializers.ModelSerializer):
         """
         try:
             contact_information = \
-                ContactInformation.objects.get(person=resident.person)
-            return contact_information.email_address
+                ContactInformation.objects.filter(person=resident.person).first()
+            if(contact_information):
+                return contact_information.email_address
         except ContactInformation.DoesNotExist:
+            return None
+
+    def get_reservation_category(self, resident):
+        try:
+            category_information = \
+                PoliticalInformation.objects.get(person=resident.person)
+            return category_information.reservation_category
+        except PoliticalInformation.DoesNotExist:
             return None
 
     def get_enrolment_number(self, resident):
@@ -121,7 +133,7 @@ class ResidentSerializer(serializers.ModelSerializer):
         try:
             student = Student.objects.get(person=resident.person)
             branch = Branch.objects.get(student=student)
-            return branch.name
+            return [branch.name, branch.degree.name]
         except Student.DoesNotExist:
             return None
         except Branch.DoesNotExist:
@@ -134,8 +146,9 @@ class ResidentSerializer(serializers.ModelSerializer):
         """
         try:
             contact_information = \
-                ContactInformation.objects.get(person=resident.person)
-            return contact_information.primary_phone_number
+                ContactInformation.objects.filter(person=resident.person).first()
+            if(contact_information):
+                return contact_information.primary_phone_number
         except ContactInformation.DoesNotExist:
             return None
 
@@ -157,10 +170,12 @@ class ResidentSerializer(serializers.ModelSerializer):
         """
         try:
             location_information = \
-                LocationInformation.objects.get(person=resident.person)
-            return location_information.address
+                LocationInformation.objects.filter(person=resident.person).first()
+            if(location_information):
+                return location_information.address
         except LocationInformation.DoesNotExist:
             return None
+        return None
 
     def get_city(self, resident):
         """
@@ -168,10 +183,12 @@ class ResidentSerializer(serializers.ModelSerializer):
         """
         try:
             location_information = \
-                LocationInformation.objects.get(person=resident.person)
-            return location_information.city
+                LocationInformation.objects.filter(person=resident.person).first()
+            if(location_information):
+                return location_information.city
         except LocationInformation.DoesNotExist:
             return None
+        return None
 
     def get_state(self, resident):
         """
@@ -179,10 +196,12 @@ class ResidentSerializer(serializers.ModelSerializer):
         """
         try:
             location_information = \
-                LocationInformation.objects.get(person=resident.person)
-            return location_information.state
+                LocationInformation.objects.filter(person=resident.person).first()
+            if(location_information):
+                return location_information.state
         except LocationInformation.DoesNotExist:
             return None
+        return None
 
     def get_country(self, resident):
         """
@@ -190,10 +209,12 @@ class ResidentSerializer(serializers.ModelSerializer):
         """
         try:
             location_information = \
-                LocationInformation.objects.get(person=resident.person)
-            return location_information.country.name
+                LocationInformation.objects.filter(person=resident.person).first()
+            if(location_information):
+                return location_information.country.name
         except LocationInformation.DoesNotExist:
             return None
+        return None
 
     def get_postal_code(self, resident):
         """
@@ -201,7 +222,9 @@ class ResidentSerializer(serializers.ModelSerializer):
         """
         try:
             location_information = \
-                LocationInformation.objects.get(person=resident.person)
-            return location_information.postal_code
+                LocationInformation.objects.filter(person=resident.person).first()
+            if(location_information):
+                return location_information.postal_code
         except LocationInformation.DoesNotExist:
             return None
+        return None

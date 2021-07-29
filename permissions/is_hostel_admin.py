@@ -1,6 +1,6 @@
 from rest_framework import permissions
 from formula_one.enums.active_status import ActiveStatus
-from bhawan_app.managers.services import is_hostel_admin
+from bhawan_app.managers.services import is_hostel_admin, is_global_admin
 
 
 class IsHostelAdmin(permissions.BasePermission):
@@ -18,4 +18,4 @@ class IsHostelAdmin(permissions.BasePermission):
         :return: if the the person is allowed or not
         """
         hostel_code=request.parser_context['kwargs']['hostel__code']
-        return is_hostel_admin(request.user.person, hostel_code)
+        return is_global_admin(request.user.person) or is_hostel_admin(request.user.person, hostel_code)

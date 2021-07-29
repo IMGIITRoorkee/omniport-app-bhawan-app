@@ -35,6 +35,9 @@ class ConstantViewset(
         mapping = designations.ADMINISTRATIVE_COUNCIL_MAP
         reverse_administrative_council_map = \
             {mapping[key]: key for key in mapping.keys()}
+        mapping = designations.GLOBAL_COUNCIL_MAP
+        reverse_global_council_map = \
+            {mapping[key]: key for key in mapping.keys()}
         mapping = complaint_types.COMPLAINT_TYPES_MAP
         reverse_complaint_types_map = \
             {mapping[key]: key for key in mapping.keys()}
@@ -52,7 +55,9 @@ class ConstantViewset(
         response['designations'] = {
             **reverse_student_council_map,
             **reverse_administrative_council_map,
+            **reverse_global_council_map,
         }
+        response['global_council'] = designations.GLOBAL_COUNCIL_LIST
         response['student_council'] = designations.STUDENT_COUNCIL_LIST
         response['administrative_council'] = designations.ADMINISTRATIVE_COUNCIL_LIST
         response['complaint_types'] = reverse_complaint_types_map

@@ -20,6 +20,8 @@ class HostelAdmin(Model):
     designation = models.CharField(max_length=5, choices=designations.DESIGNATIONS,)
     hostel = models.ForeignKey(
         to=swapper.get_model_name("kernel", "Residence"), on_delete=models.CASCADE,
+        null=True,
+        blank=True,
     )
 
     def clean(self):
@@ -57,7 +59,10 @@ class HostelAdmin(Model):
 
         person = self.person
         designation = self.get_designation_display()
-        hostel = self.hostel.name
+        if(self.hostel):
+            hostel = self.hostel.name
+        else:
+            hostel = "GLOBAL"
         return f"{person} - {designation}, {hostel}"
 
     class Meta:

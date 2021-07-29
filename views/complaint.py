@@ -11,11 +11,12 @@ from django.shortcuts import get_object_or_404
 from bhawan_app.models import Complaint, Resident
 from bhawan_app.serializers.complaint import ComplaintSerializer
 from bhawan_app.managers.services import (
-    is_warden, 
-    is_supervisor, 
-    is_hostel_admin
+    is_warden,
+    is_supervisor,
+    is_hostel_admin,
+    is_global_admin,
 )
-from bhawan_app.constants import statuses   
+from bhawan_app.constants import statuses
 from bhawan_app.constants import complaint_types
 from bhawan_app.pagination.custom_pagination import CustomPagination 
 
@@ -39,7 +40,7 @@ class ComplaintViewset(viewsets.ModelViewSet):
                 status.HTTP_403_FORBIDDEN,
             )
 
-        if is_warden(request.person, hostel__code) or is_supervisor(request.person, hostel__code):
+        if is_warden(request.person, hostel__code) or is_supervisor(request.person, hostel__code) or is_global_admin(request.person):
             count = instance.failed_attempts
             updates = {}
             if count < 3:
@@ -109,7 +110,8 @@ class ComplaintViewset(viewsets.ModelViewSet):
     def partial_update(self, request, hostel__code, pk=None):
         instance = get_object_or_404(Complaint, pk=pk)
         if not is_warden(request.person, hostel__code) and \
-                not is_supervisor(request.person, hostel__code):
+                not is_supervisor(request.person, hostel__code) and \
+                    not is_global_admin(request.person):
             return Response(
                 "Only Supervisor and Warden are allowed to perform this action!",
                 status=status.HTTP_403_FORBIDDEN,

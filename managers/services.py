@@ -17,6 +17,13 @@ def get_hostel_admin(person, hostel_code, active_status=ActiveStatus.ANY):
     except HostelAdmin.DoesNotExist:
         return None
 
+def is_global_admin(person):
+    """
+    Determine if the person has the global administrative priviliges
+    """
+    return HostelAdmin.objects.filter(person=person, designation__in=designations.GLOBAL_COUNCIL_LIST).first()
+
+
 
 def is_supervisor(person, hostel_code):
     """

@@ -12,19 +12,19 @@ FEEDBACK = "fdb"
 
 COMPLAINT_TYPES = (
     (ELECTRIC, "Electric"),
-    (TOILET, "Toilet"),
+    (TOILET, "Washroom"),
     (CARPENTRY, "Carpentry"),
     (CLEANING, "Cleaning"),
     (MESS, "Mess"),
     (FEEDBACK, "feedback"),
-    (OTHER, "Other"),
+    (OTHER, "Others"),
 )
 COMPLAINT_TYPES_MAP = {
     'ELECTRIC': ELECTRIC,
-    'TOILET': TOILET,
+    'WASHROOM': TOILET,
     'CARPENTRY': CARPENTRY,
     'CLEANING': CLEANING,
     'MESS': MESS,
     'FEEDBACK': FEEDBACK,
-    'OTHER': OTHER,
+    'OTHERS': OTHER,
 }

@@ -2,12 +2,23 @@
 Designation of hostel staff at IIT Roorkee
 """
 
+#Global Council
+DOSW = "dosw"
+GSHA = "gsha"
+
+GLOBAL_COUNCIL = (
+    (DOSW, "DEAN of students welfare"),
+    (GSHA, "GENSEC Hostel Afairs"),
+)
+
+
 # Administrative council
 ASSISTANT_WARDEN = "aw"
 CHIEF_WARDEN = "cw"
 SUPERVISOR = "sup"
 WARDEN = "war"
 WARDEN_WELLNESS = "waw"
+
 ADMINISTRATIVE_COUNCIL = (
     (ASSISTANT_WARDEN, "Assistant warden"),
     (CHIEF_WARDEN, "Chief warden"),
@@ -32,7 +43,7 @@ STUDENT_COUNCIL = (
     (TECHNICAL_SECRETARY, "Technical secretary"),
 )
 
-DESIGNATIONS = ADMINISTRATIVE_COUNCIL + STUDENT_COUNCIL
+DESIGNATIONS = ADMINISTRATIVE_COUNCIL + STUDENT_COUNCIL + GLOBAL_COUNCIL
 
 STUDENT_COUNCIL_MAP    = {
     'BHAWAN_SECRETARY': BHAWAN_SECRETARY,
@@ -50,6 +61,16 @@ ADMINISTRATIVE_COUNCIL_MAP = {
     'WARDEN': WARDEN,
     'WARDEN_WELLNESS': WARDEN_WELLNESS,
 }
+
+GLOBAL_COUNCIL_MAP = {
+    'GENSEC HOSTEL AFFAIRS': GSHA,
+    'DEAN of students welfare:': DOSW,
+}
+
+GLOBAL_COUNCIL_LIST = [
+    GSHA,
+    DOSW
+]
 
 ADMINISTRATIVE_COUNCIL_LIST = [
     ASSISTANT_WARDEN, 

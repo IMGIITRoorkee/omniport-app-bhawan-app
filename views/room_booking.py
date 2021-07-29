@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from bhawan_app.models import RoomBooking, Visitor, Resident
 from bhawan_app.serializers.room_booking import RoomBookingSerializer
-from bhawan_app.managers.services import is_hostel_admin, is_supervisor, is_warden
+from bhawan_app.managers.services import is_hostel_admin, is_supervisor, is_warden, is_global_admin
 from bhawan_app.constants import statuses
 from bhawan_app.pagination.custom_pagination import CustomPagination
 
@@ -65,7 +65,8 @@ class RoomBookingViewset(viewsets.ModelViewSet):
                 visitor_person = Person.objects.create(
                     full_name=visitor_full_name,
                 )
-                photo_identification = file_data.pop(f'visitors{visitor_index}')
+                file_name = f'visitors_{visitor_index}'
+                photo_identification = file_data.get(file_name)
                 Visitor.objects.create(
                     person=visitor_person,
                     photo_identification=photo_identification,
@@ -85,12 +86,12 @@ class RoomBookingViewset(viewsets.ModelViewSet):
         instance = get_object_or_404(RoomBooking, pk=pk)
         if 'status' in data.keys():
             if data['status'] == statuses.FORWARDED:
-                if not is_supervisor(request.person, hostel__code):
+                if not is_supervisor(request.person, hostel__code) and not is_global_admin(request.person):
                     return Response(
                         "Only Supervisor is allowed to perform this action!",
                         status=status.HTTP_403_FORBIDDEN,
                     )
-            elif not is_warden(request.person, hostel__code):
+            elif not is_warden(request.person, hostel__code) and not is_global_admin(request.person):
                 return Response(
                     "Only Warden is allowed to perform this action!",
                     status=status.HTTP_403_FORBIDDEN,

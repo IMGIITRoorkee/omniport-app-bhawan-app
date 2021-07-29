@@ -34,15 +34,14 @@ class EventViewset(viewsets.ModelViewSet):
         return {
             'hostel__code': self.kwargs['hostel__code'],
         }
-    
+
     def partial_update(self, request, hostel__code, pk=None):
         """
         Update the event instance iff the logged in user is Admin
         :return: Updated instance
         """
-        if is_hostel_admin(request.person, hostel__code):
+        if is_global_admin(req.person) or is_hostel_admin(request.person, hostel__code):
             return super().partial_update(request, hostel__code, pk)
-            
         return Response(
             {"You are not allowed to perform this action !"},
             status=status.HTTP_403_FORBIDDEN,
