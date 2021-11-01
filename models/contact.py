@@ -14,6 +14,10 @@ class Contact(Model):
     person = models.ForeignKey(
         to=swapper.get_model_name("kernel", "Person"), on_delete=models.CASCADE,
     )
+    hostel = models.ForeignKey(
+        to=swapper.get_model_name("kernel", "Residence"),
+        on_delete=models.CASCADE,
+    )
     designation = models.CharField(
         max_length=5, unique=True, choices=designations.DESIGNATIONS,
     )
