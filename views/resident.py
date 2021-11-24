@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
+from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
@@ -268,12 +269,21 @@ class ResidentViewset(viewsets.ModelViewSet):
         filters received from query params.
         """
         filters = {}
+        search_query = Q()
         params = self.request.GET
+        
+        """
+        Filter based on search(Name/Enrollment no.)
+        """
+        search = params.get('search',"")
+        if len(search):
+            search_query = Q(person__student__enrolment_number__contains=search) | Q(person__full_name__icontains=search)
 
         """
         Filter based on hostel
         """
-        filters['hostel__code'] = self.kwargs['hostel__code']
+        if not params.get('all'):
+            filters['hostel__code'] = self.kwargs['hostel__code']
 
         """
         Filter based on Year
@@ -312,7 +322,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             else:
                 queryset = queryset.filter(person__student__isnull=True)
 
-        queryset = queryset.filter(**filters).order_by('-datetime_modified')
+        queryset = queryset.filter(**filters).filter(search_query).order_by('-datetime_modified')
 
         return queryset
 
