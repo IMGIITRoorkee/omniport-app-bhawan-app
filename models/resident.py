@@ -11,7 +11,7 @@ class Resident(Model):
     Describes the details of a registered Resident.
     """
 
-    person = models.OneToOneField(
+    person = models.ForeignKey(
         to=swapper.get_model_name("Kernel", "Person"), on_delete=models.CASCADE,
     )
     hostel = models.ForeignKey(
@@ -22,7 +22,7 @@ class Resident(Model):
         max_length=10,
     )
     is_resident = models.BooleanField(default=True)
-    father = models.OneToOneField(
+    father = models.ForeignKey(
         to=swapper.get_model_name("Kernel", "Person"), on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -33,7 +33,7 @@ class Resident(Model):
         null=True,
         blank=True
     )
-    mother = models.OneToOneField(
+    mother = models.ForeignKey(
         to=swapper.get_model_name("Kernel", "Person"), on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -44,6 +44,8 @@ class Resident(Model):
         null=True,
         blank=True
     )
+    start_date = models.DateTimeField(auto_now_add=True)
+    end_date = models.DateTimeField(null=True, blank=True)
 
     def clean(self):
         """

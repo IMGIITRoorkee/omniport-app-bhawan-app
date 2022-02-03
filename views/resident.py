@@ -103,7 +103,7 @@ class ResidentViewset(viewsets.ModelViewSet):
         father = None
         mother = None
         try:
-            existing = Resident.objects.get(person=person)
+            existing = Resident.objects.get(person=person, is_resident=True)
             try:
                 father = existing.father
                 if(fathers_name is not None):
@@ -135,7 +135,9 @@ class ResidentViewset(viewsets.ModelViewSet):
                 else:
                     mother = None
 
-            existing.delete()
+            existing.is_resident = False
+            existing.end_date = datetime.now()
+            existing.save()
 
         except Resident.DoesNotExist:
             if(fathers_name is not None):
@@ -336,6 +338,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             hostel = Residence.objects.get(code=hostel__code)
             resident = Resident.objects.get(person=person, hostel=hostel, is_resident=True)
             resident.is_resident = False
+            resident.end_date = datetime.now()
             resident.save()
             return Response(
                 f"{person.full_name} succesfully deregistered from {hostel__code}"
