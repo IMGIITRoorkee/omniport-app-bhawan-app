@@ -10,7 +10,7 @@ from bhawan_app.models import Timing
 from bhawan_app.models.roles import HostelAdmin
 from bhawan_app.models.resident import Resident
 from bhawan_app.constants import facility_types
-from bhawan_app.utils.notification.push_notification import send_push_notification
+# from bhawan_app.utils.notification.push_notification import send_push_notification
 
 
 class Facility(Model):
@@ -56,10 +56,9 @@ class Facility(Model):
 def execute_after_save(sender, instance, created, *args, **kwargs):
     if created:
         template = f"New facility started for your hostel : {instance.name} "
-        hostel_ids = [hostel.id for hostel in instance.hostel.all()]
-        all_residents = Resident.objects.filter(hostel__in=hostel_ids)
-        all_staff = HostelAdmin.objects.filter(hostel__in=hostel_ids)
+        all_residents = Resident.objects.filter(hostel=instance.hostel, is_resident=True)
+        all_staff = HostelAdmin.objects.filter(hostel=instance.hostel)
         notify_residents = [resident.person.id for resident in all_residents]
         notify_staff = [staff.person.id for staff in all_staff]
         notify_users = list(set(notify_residents + notify_staff))
-        send_push_notification(template, True, notify_users)
+        # send_push_notification(template, True, notify_users)

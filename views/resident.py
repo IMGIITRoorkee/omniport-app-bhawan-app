@@ -184,6 +184,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             obj["country"] = None
             obj["postal_code"] = None
             obj["reservation_category"] = None
+            obj["is_living_in_campus"] = False
 
             try:
                 contact_information = \
@@ -294,6 +295,10 @@ class ResidentViewset(viewsets.ModelViewSet):
         if year:
             filters['person__student__current_year'] = year
 
+        is_living_in_campus = params.get('is_living_in_campus', None)
+        if is_living_in_campus:
+            filters['is_living_in_campus'] = is_living_in_campus
+
         """
         Filter based on Branch
         """
@@ -329,6 +334,44 @@ class ResidentViewset(viewsets.ModelViewSet):
         return queryset
 
     @action(detail=True, methods=['get'])
+    def previous_records(self, request, hostel__code, pk):
+        """
+        This method gives all records of a student
+        """
+        try:
+            person = Person.objects.get(student__enrolment_number=pk)
+            hostel = Residence.objects.get(code=hostel__code)
+            residents = Resident.objects.filter(person=person, hostel=hostel)
+            prev_records = []
+            for resident in residents:
+                record = {
+                    "start_date": resident.start_date,
+                    "end_date": resident.end_date,
+                    "hostel": resident.hostel.code
+                }
+                prev_records.append(record)
+            return Response(prev_records)
+
+        except Person.DoesNotExist:
+            error = {
+                "error": "There is no such person on Channeli"
+            }
+            return Response(
+                error,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        except Resident.DoesNotExist:
+            error = {
+                "error": f"{person.full_name} is not a resident of {hostel__code}"
+            }
+            return Response(
+                error,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+    @action(detail=True, methods=['get'])
     def deregister(self, request, hostel__code, pk):
         """
         This method deregisters a student from the Bhawan
@@ -344,6 +387,74 @@ class ResidentViewset(viewsets.ModelViewSet):
                 f"{person.full_name} succesfully deregistered from {hostel__code}"
             )
 
+        except Person.DoesNotExist:
+            error = {
+                "error": "There is no such person on Channeli"
+            }
+            return Response(
+                error,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        except Resident.DoesNotExist:
+            error = {
+                "error": f"{person.full_name} is not a resident of {hostel__code}"
+            }
+            return Response(
+                error,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+    @action(detail = True, methods=['get'])
+    def markin(self, request, hostel__code, pk):
+        """
+        This method marks a student in the campus
+        """
+        try:
+            person = Person.objects.get(pk=pk)
+            hostel = Residence.objects.get(code=hostel__code)
+            resident = Resident.objects.get(person=person, hostel=hostel, is_resident=True)
+            resident.is_living_in_campus = True
+            resident.save()
+            return Response(
+                f"{person.full_name} succesfully marked inside {hostel__code}"
+            )
+        
+        except Person.DoesNotExist:
+            error = {
+                "error": "There is no such person on Channeli"
+            }
+            return Response(
+                error,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        except Resident.DoesNotExist:
+            error = {
+                "error": f"{person.full_name} is not a resident of {hostel__code}"
+            }
+            return Response(
+                error,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    
+    @action(detail = True, methods=['get'])
+    def markout(self, request, hostel__code, pk):
+        """
+        This method marks a student out of campus
+        """
+        try:
+            person = Person.objects.get(pk=pk)
+            hostel = Residence.objects.get(code=hostel__code)
+            resident = Resident.objects.get(person=person, hostel=hostel, is_resident=True)
+            resident.is_living_in_campus = False
+            resident.save()
+            return Response(
+                f"{person.full_name} succesfully marked out of {hostel__code}"
+            )
+        
         except Person.DoesNotExist:
             error = {
                 "error": "There is no such person on Channeli"
@@ -390,6 +501,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             'Postal Code': [],
             'Display Picture': [],
             'Reservation Category': [],
+            'Inside Campus': [],
         }
         for resident in queryset:
             try:
@@ -410,6 +522,7 @@ class ResidentViewset(viewsets.ModelViewSet):
                 data['Postal Code'].append(self.get_postal_code(resident))
                 data['Display Picture'].append(resident.person.display_picture)
                 data['Reservation Category'].append(self.get_reservation_category(resident))
+                data['Inside Campus'].append(resident.is_living_in_campus)
             except IndexError:
                 pass
 

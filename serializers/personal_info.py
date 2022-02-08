@@ -66,7 +66,7 @@ class PersonalInfoSerializer(serializers.Serializer):
             for hostel in hostel_codes:
                 hostel_list.append([hostel, global_admin.designation])
             try:
-                resident = Resident.objects.get(person = obj.person)
+                resident = Resident.objects.get(person = obj.person, is_resident = True)
                 hostel_list.append([resident.hostel.code, None])
             except:
                 pass
@@ -77,7 +77,7 @@ class PersonalInfoSerializer(serializers.Serializer):
             hostel_list = HostelAdmin.objects\
                 .filter(person=obj.person).values_list('hostel__code', 'designation')
             try:
-                resident = Resident.objects.get(person = obj.person)
+                resident = Resident.objects.get(person = obj.person, is_resident = True)
                 hostels = []
                 student_council = False
                 for hostel in hostel_list:
@@ -100,7 +100,7 @@ class PersonalInfoSerializer(serializers.Serializer):
         Returns the room number of person
         """
         try:
-            resident = Resident.objects.get(person = obj.person)
+            resident = Resident.objects.get(person = obj.person, is_resident = True)
             return resident.room_number
         except Resident.DoesNotExist:
             return None
@@ -175,4 +175,4 @@ class PersonalInfoSerializer(serializers.Serializer):
         """
 
         person = obj.person
-        return Resident.objects.filter(person=person).exists()
+        return Resident.objects.filter(person=person, is_resident = True).exists()
