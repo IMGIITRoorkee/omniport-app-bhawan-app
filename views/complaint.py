@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
+from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -60,9 +61,7 @@ class ComplaintViewset(viewsets.ModelViewSet):
         )
 
     def get_queryset(self):
-        filters = self.get_filters(self.request)
-        queryset = Complaint.objects\
-            .filter(**filters).order_by('-datetime_modified')
+        queryset = self.apply_filters(self.request)
         return queryset
 
     def get_serializer_context(self):
@@ -125,12 +124,13 @@ class ComplaintViewset(viewsets.ModelViewSet):
         serializer.save(datetime_modified=datetime.now())
         return Response(serializer.data)
 
-    def get_filters(self, request):
+    def apply_filters(self, request):
         """
         Return a dict with all the filters populated with the
         filters received from query params.
         """
         filters = {}
+        search_query = Q()
         params = self.request.GET
         
         """
@@ -157,6 +157,16 @@ class ComplaintViewset(viewsets.ModelViewSet):
                     complaint_types.COMPLAINT_TYPES_MAP[complaint_type]
         
         """
+        Apply the filters based on search(Name/Enrollment no.).
+        Usage: /complaint/?search=<searchkeyword_in_uppercase>
+        """
+        if 'search' in params.keys():
+            search = params['search']
+            print(search)
+            if len(search):
+                search_query = Q(resident__person__student__enrolment_number__contains=search) | Q(resident__person__full_name__icontains=search)
+
+        """
         Filter based on hostel
         """
         filters['resident__hostel__code']= self.kwargs["hostel__code"]
@@ -167,7 +177,10 @@ class ComplaintViewset(viewsets.ModelViewSet):
         """
         if not is_hostel_admin(request.person, self.kwargs["hostel__code"]):
             filters['resident__person'] = request.person.id
-        return filters
+
+        queryset = Complaint.objects.filter(**filters).filter(search_query).order_by('-datetime_modified')
+     
+        return queryset
 
     @action(detail=False, methods=['get'])
     def download(self, request, hostel__code):
