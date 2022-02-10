@@ -46,6 +46,7 @@ class Resident(Model):
     )
     start_date = models.DateTimeField(auto_now_add=True)
     end_date = models.DateTimeField(null=True, blank=True)
+    is_living_in_campus = models.BooleanField(default = True)
 
     def clean(self):
         """

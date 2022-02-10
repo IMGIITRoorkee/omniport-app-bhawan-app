@@ -29,7 +29,7 @@ class PersonalInfoView(generics.RetrieveAPIView):
         resident = None
         admin = None
         try:
-            resident = Resident.objects.get(person=person)
+            resident = Resident.objects.get(person=person, is_resident = True)
         except Resident.DoesNotExist:
             pass
         try:
