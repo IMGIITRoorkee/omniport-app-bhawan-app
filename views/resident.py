@@ -251,7 +251,7 @@ class ResidentViewset(viewsets.ModelViewSet):
         data = request.data
         enrolment_number = pk
         try:
-            instance = Resident.objects.get(person__student__enrolment_number=enrolment_number)
+            instance = Resident.objects.get(person__student__enrolment_number=enrolment_number, is_resident = True)
         except Resident.DoesNotExist:
             return Response(
                 "Resident with this enrolment number doesn't exist !",

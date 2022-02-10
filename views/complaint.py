@@ -1,4 +1,5 @@
 from datetime import datetime
+import pandas as pd
 
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
@@ -6,9 +7,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
 from bhawan_app.models import Complaint, Resident
+from bhawan_app.views.utils import get_phone_number
 from bhawan_app.serializers.complaint import ComplaintSerializer
 from bhawan_app.managers.services import (
     is_warden,
@@ -83,7 +86,7 @@ class ComplaintViewset(viewsets.ModelViewSet):
                 status.HTTP_404_NOT_FOUND,
             )
         try:
-            resident = Resident.objects.get(person=person)
+            resident = Resident.objects.get(person=person, is_resident = True)
         except Resident.DoesNotExist:
             return Response(
                 "Resident doesn't exist !",
@@ -165,3 +168,43 @@ class ComplaintViewset(viewsets.ModelViewSet):
         if not is_hostel_admin(request.person, self.kwargs["hostel__code"]):
             filters['resident__person'] = request.person.id
         return filters
+
+    @action(detail=False, methods=['get'])
+    def download(self, request, hostel__code):
+        """
+        This method exports a csv corresponding to the list
+        of complaints
+        """
+        params = self.request.GET
+        filters = self.get_filters(self.request)
+        queryset = Complaint.objects\
+            .filter(**filters).order_by('-datetime_modified')
+        data = {
+            'Applicant Name': [],
+            'Complaint Date': [],
+            'Complaint Type': [],
+            'Description': [],
+            'Contact No.': [],
+            'Applicant Room': [],
+            'Unsuccesful attempts': [],
+            'Status': [],
+        }
+        for complain in queryset:
+            try:
+                data['Applicant Name'].append(complain.resident.person.full_name)
+                data['Complaint Date'].append(complain.datetime_created.strftime("%I:%M%p %d%b%Y"))
+                data['Complaint Type'].append(complain.get_complaint_type_display())
+                data['Description'].append(complain.description)
+                data['Contact No.'].append(get_phone_number(complain.resident))
+                data['Applicant Room'].append(complain.resident.room_number)
+                data['Unsuccesful attempts'].append(complain.failed_attempts)
+                data['Status'].append(complain.status)
+            except IndexError:
+                pass
+
+        file_name = f'{hostel__code}_complaints_list.csv'
+        df = pd.DataFrame(data)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=' + file_name
+        df.to_csv(path_or_buf=response, index=False)
+        return response

@@ -1,13 +1,17 @@
 import json
 import swapper
+import pandas as pd
 from datetime import datetime
 
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
 from rest_framework import mixins, viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from bhawan_app.models import RoomBooking, Visitor, Resident
+from bhawan_app.views.utils import get_phone_number
 from bhawan_app.serializers.room_booking import RoomBookingSerializer
 from bhawan_app.managers.services import is_hostel_admin, is_supervisor, is_warden, is_global_admin
 from bhawan_app.constants import statuses
@@ -43,7 +47,7 @@ class RoomBookingViewset(viewsets.ModelViewSet):
         file_data = self.request.FILES
         visitors = self.request.POST.pop('visitors')
         try:
-            resident = Resident.objects.get(person=request.person)
+            resident = Resident.objects.get(person=request.person, is_resident = True)
         except Resident.DoesNotExist:
             return Response(
                 f'{request.person} is not a registered resident',
@@ -151,11 +155,11 @@ class RoomBookingViewset(viewsets.ModelViewSet):
         Filter based on date of booking, if past=True then filter booking which
         are reqeusted from a date date that has passed
         """
-        if 'past' in params.keys():
-            if params['past'] == 'true':
-                filters['requested_from__lt'] = datetime.now()
-            elif params['past'] == 'false':
-                filters['requested_from__gte'] = datetime.now()
+        # if 'past' in params.keys():
+        #     if params['past'] == 'true':
+        #         filters['requested_from__lt'] = datetime.now()
+        #     elif params['past'] == 'false':
+        #         filters['requested_from__gte'] = datetime.now()
 
         """
         If not hostel admin, list the booking by the person only.
@@ -163,3 +167,41 @@ class RoomBookingViewset(viewsets.ModelViewSet):
         if not is_hostel_admin(request.person, self.kwargs["hostel__code"]):
             filters['resident__person'] = request.person.id
         return filters
+
+    @action(detail=False, methods=['get'])
+    def download(self, request, hostel__code):
+        """
+        This method exports a csv corresponding to the list
+        of room bookings
+        """
+        params = self.request.GET
+        filters = self.get_filters(self.request)
+        queryset = RoomBooking.objects\
+            .filter(**filters).order_by('-datetime_modified')
+        data = {
+            'Applicant Name': [],
+            'Start Date': [],
+            'End Date': [],
+            'Contact No.': [],
+            'Applicant Room': [],
+            'Visitors': [],
+            'Status': [],
+        }
+        for booking in queryset:
+            try:
+                data['Applicant Name'].append(booking.resident.person.full_name)
+                data['Start Date'].append(booking.requested_from.strftime("%I:%M%p %d%b%Y"))
+                data['End Date'].append(booking.requested_till.strftime("%I:%M%p %d%b%Y"))
+                data['Contact No.'].append(get_phone_number(booking.resident))
+                data['Applicant Room'].append(booking.resident.room_number)
+                data['Visitors'].append(Visitor.objects.filter(booking=booking).count())
+                data['Status'].append(booking.status)
+            except IndexError:
+                pass
+
+        file_name = f'{hostel__code}_bookings_list.csv'
+        df = pd.DataFrame(data)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=' + file_name
+        df.to_csv(path_or_buf=response, index=False)
+        return response

@@ -31,7 +31,7 @@ class HostelAdmin(Model):
         """
         if(self.designation in designations.STUDENT_COUNCIL_LIST):
             try:
-                resident = Resident.objects.get(person=self.person)
+                resident = Resident.objects.get(person=self.person, is_resident = True)
                 if(resident.hostel != self.hostel):
                     raise ValidationError(
                         f"{self.person.full_name} is not a resident of {self.hostel.code}"
