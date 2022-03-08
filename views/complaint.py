@@ -162,7 +162,6 @@ class ComplaintViewset(viewsets.ModelViewSet):
         """
         if 'search' in params.keys():
             search = params['search']
-            print(search)
             if len(search):
                 search_query = Q(resident__person__student__enrolment_number__contains=search) | Q(resident__person__full_name__icontains=search)
 
