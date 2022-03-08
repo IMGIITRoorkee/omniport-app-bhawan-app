@@ -6,6 +6,8 @@ from bhawan_app.models import (
     Facility,
     RoomBooking,
     Complaint,
+    Item,
+    DefaultItem,
     Timing,
     Visitor,
     Event,
@@ -20,6 +22,8 @@ omnipotence.register(Contact)
 omnipotence.register(Facility)
 omnipotence.register(RoomBooking)
 omnipotence.register(Complaint)
+omnipotence.register(Item)
+omnipotence.register(DefaultItem)
 omnipotence.register(HostelAdmin)
 omnipotence.register(Timing)
 omnipotence.register(Visitor)

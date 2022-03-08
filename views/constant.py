@@ -7,6 +7,7 @@ from rest_framework.renderers import JSONRenderer
 from bhawan_app.constants import (
     designations,
     complaint_types,
+    complaint_items,
     statuses,
     days,
 )
@@ -41,6 +42,9 @@ class ConstantViewset(
         mapping = complaint_types.COMPLAINT_TYPES_MAP
         reverse_complaint_types_map = \
             {mapping[key]: key for key in mapping.keys()}
+        mapping = complaint_items.COMPLAINT_ITEMS_MAP
+        reverse_complaint_items_map = \
+            {mapping[key]: key for key in mapping.keys()}
         mapping = statuses.COMLAINT_STATUSES_MAP
         reverse_complaint_statuses_map = \
             {mapping[key]: key for key in mapping.keys()}
@@ -64,6 +68,7 @@ class ConstantViewset(
         response['student_council'] = designations.STUDENT_COUNCIL_LIST
         response['administrative_council'] = designations.ADMINISTRATIVE_COUNCIL_LIST
         response['complaint_types'] = reverse_complaint_types_map
+        response['complaint_items'] = reverse_complaint_items_map
         response['statues'] = {
             'COMLAINT_STATUSES': reverse_complaint_statuses_map,
             'BOOKING_STATUSES': reverse_booking_statuses_map,

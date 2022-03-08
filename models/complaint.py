@@ -7,6 +7,8 @@ from formula_one.models.base import Model
 from bhawan_app.constants import complaint_types, statuses
 from bhawan_app.models.complaint_time_slot import ComplaintTimeSlot
 from bhawan_app.models.resident import Resident
+# from bhawan_app.models.item import Item
+from bhawan_app.models.default_item import DefaultItem
 from bhawan_app.models.roles import HostelAdmin
 # from bhawan_app.utils.notification.push_notification import send_push_notification
 
@@ -34,6 +36,11 @@ class Complaint(Model):
         default=0,
         validators=[MaxValueValidator(3)],
     )
+    remark = models.TextField(
+        null=True, 
+        blank=True
+    )
+    items = models.ManyToManyField(DefaultItem, through='Item')
 
     def __str__(self):
         """

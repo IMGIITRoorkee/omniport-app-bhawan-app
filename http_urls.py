@@ -5,6 +5,8 @@ from bhawan_app.views.profile import ProfileViewset
 from bhawan_app.views.contact import ContactViewset
 from bhawan_app.views.facility import FacilityViewset
 from bhawan_app.views.complaint import ComplaintViewset
+from bhawan_app.views.item import ItemViewset
+from bhawan_app.views.default_item import DefaultItemViewset
 from bhawan_app.views.room_booking import RoomBookingViewset
 from bhawan_app.views.personal_info import PersonalInfoView
 from bhawan_app.views.event import EventViewset
@@ -24,6 +26,12 @@ router.register(
 )
 router.register(
     r"(?P<hostel__code>[\w\-]+)/complaint", ComplaintViewset, basename="complaint",
+)
+router.register(
+    r"(?P<hostel__code>[\w\-]+)/item", ItemViewset, basename="item",
+)
+router.register(
+    r"(?P<hostel__code>[\w\-]+)/default_item", DefaultItemViewset, basename="default_item",
 )
 router.register(
     r"(?P<hostel__code>[\w\-]+)/room_booking",

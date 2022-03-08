@@ -6,6 +6,7 @@ from rest_framework import serializers
 from formula_one.models.generics.contact_information import ContactInformation
 from bhawan_app.models import Complaint, ComplaintTimeSlot
 from bhawan_app.serializers.timing import TimingSerializer
+from bhawan_app.serializers.item import ItemSerializer
 from bhawan_app.constants import statuses
 
 
@@ -32,7 +33,7 @@ class ComplaintSerializer(serializers.ModelSerializer):
         source='resident.room_number',
         read_only=True,
     )
-
+    items = ItemSerializer(source='item_set', many = True )
     phone_number = serializers.SerializerMethodField()
 
     timing = serializers.SerializerMethodField()
@@ -47,10 +48,12 @@ class ComplaintSerializer(serializers.ModelSerializer):
             "hostel_code",
             "description",
             "id",
+            "items",
             "phone_number",
             "timing",
             "failed_attempts",
-            "datetime_created"
+            "datetime_created",
+            "remark"
         ]
         extra_kwargs = {
             "status": {"read_only": True},
@@ -73,7 +76,6 @@ class ComplaintSerializer(serializers.ModelSerializer):
 
     def get_phone_number(self, obj):
         """
-        Returns the timings of a complaint.
          Returns the primary phone number of the complainant
         :return: the primary phone number of the complainant
         """
