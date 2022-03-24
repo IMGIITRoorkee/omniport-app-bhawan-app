@@ -15,7 +15,7 @@ class ItemSerializer(serializers.ModelSerializer):
         source='complaint.resident.hostel.code',
         read_only=True,
     )
-    # default_item = DefaultItemSerializer(many=True)
+
     name = serializers.ReadOnlyField(source='default_item.name')                     
 
     
