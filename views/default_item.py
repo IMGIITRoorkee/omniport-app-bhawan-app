@@ -46,10 +46,17 @@ class DefaultItemViewset(viewsets.ModelViewSet):
         data = request.data
         name = data.get('name', None)
 
-        instance = DefaultItem.objects.create(
-            name = name,
-            datetime_modified=datetime.now(),
-        )
+        try:
+            instance = DefaultItem.objects.create(
+                name = name,
+                datetime_modified=datetime.now(),
+            )
+        except:
+            return Response(
+            "Item already exists !",
+            status=status.HTTP_400_BAD_REQUEST,
+            )
+
         return Response(DefaultItemSerializer(instance).data, status=status.HTTP_201_CREATED)
 
     

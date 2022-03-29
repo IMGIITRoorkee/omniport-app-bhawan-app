@@ -84,6 +84,16 @@ class ResidentViewset(viewsets.ModelViewSet):
                 "Residence doesn't exist !",
                 status=status.HTTP_404_NOT_FOUND,
             )
+        try:
+            is_living_in_campus = data['is_living_in_campus']
+        except:
+            pass
+
+        try:
+            fee_type = data['fee_type']
+        except:
+            pass
+
         fathers_name = None
         fathers_contact = None
         try:
@@ -152,6 +162,8 @@ class ResidentViewset(viewsets.ModelViewSet):
             person=person,
             room_number=room_number,
             hostel=hostel,
+            fee_type=fee_type,
+            is_living_in_campus=is_living_in_campus,
             father=father,
             fathers_contact=fathers_contact,
             mother=mother,
