@@ -7,10 +7,8 @@ from formula_one.models.base import Model
 from bhawan_app.constants import complaint_types, statuses
 from bhawan_app.models.complaint_time_slot import ComplaintTimeSlot
 from bhawan_app.models.resident import Resident
-# from bhawan_app.models.item import Item
 from bhawan_app.models.default_item import DefaultItem
 from bhawan_app.models.roles import HostelAdmin
-# from bhawan_app.utils.notification.push_notification import send_push_notification
 
 
 class Complaint(Model):
@@ -52,11 +50,3 @@ class Complaint(Model):
         room_no = self.resident.room_number
         return f"{complaint_type} issue in {room_no}"
 
-@receiver(models.signals.post_save, sender=Complaint)
-def execute_after_save(sender, instance, created, *args, **kwargs):
-    if created:
-        template = f"New Complaint regarding {instance.complaint_type} by {instance.resident} "
-        hostel = instance.resident.hostel.id
-        all_staff = HostelAdmin.objects.filter(hostel=hostel)
-        notify_users = [staff.person.id for staff in all_staff]
-        # send_push_notification(template, True, notify_users)

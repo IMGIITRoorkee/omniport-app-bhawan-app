@@ -12,6 +12,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
 from bhawan_app.models import Complaint, Resident
+from bhawan_app.models.roles import HostelAdmin
 from bhawan_app.views.utils import get_phone_number
 from bhawan_app.serializers.complaint import ComplaintSerializer
 from bhawan_app.managers.services import (
@@ -23,6 +24,7 @@ from bhawan_app.managers.services import (
 from bhawan_app.constants import statuses
 from bhawan_app.constants import complaint_types
 from bhawan_app.pagination.custom_pagination import CustomPagination 
+from bhawan_app.utils.notification.push_notification import send_push_notification
 
 
 class ComplaintViewset(viewsets.ModelViewSet):
@@ -98,6 +100,12 @@ class ComplaintViewset(viewsets.ModelViewSet):
             description=description,
             complaint_type=complaint_type,
         )
+        template = f"New Complaint regarding {instance.complaint_type} by {instance.resident} "
+        hostel = instance.resident.hostel.id
+        all_staff = HostelAdmin.objects.filter(hostel=hostel)
+        notify_users = [staff.person.id for staff in all_staff]
+        send_push_notification(template, True, notify_users)
+
         return Response(ComplaintSerializer(instance).data)
 
     def retrieve(self, request, hostel__code, pk=None):
