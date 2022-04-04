@@ -94,32 +94,31 @@ class ItemViewset(viewsets.ModelViewSet):
         return Response(ItemSerializer(instance).data, status=status.HTTP_201_CREATED)
 
 
-@action(detail=False, methods=['get'])
-def download(self, request, hostel__code):
-    """
-    This method exports a csv corresponding to the list
-    of items
-    """
-    print('hello')
-    params = self.request.GET
-    queryset = self.get_queryset()
-    data = {
-        'Item Name': [],
-        'Quantity': []
-    }
-    for item in queryset:
-        try:
-            data['Item Name'].append(item.name)
-            data['Quantity'].append(item.quantity)
-        except IndexError:
-            pass
+    @action(detail=False, methods=['get'])
+    def download(self, request, hostel__code):
+        """
+        This method exports a csv corresponding to the list
+        of items
+        """
+        params = self.request.GET
+        queryset = self.get_queryset()
+        data = {
+            'Item Name': [],
+            'Quantity': []
+        }
+        for item in queryset:
+            try:
+                data['Item Name'].append(item['default_item'].name)
+                data['Quantity'].append(item['quantity'])
+            except IndexError:
+                pass
 
-    file_name = f'{hostel__code}_items_list.csv'
-    df = pd.DataFrame(data)
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=' + file_name
-    df.to_csv(path_or_buf=response, index=False)
-    return response
+        file_name = f'{hostel__code}_items_list.csv'
+        df = pd.DataFrame(data)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=' + file_name
+        df.to_csv(path_or_buf=response, index=False)
+        return response
 
 
     
