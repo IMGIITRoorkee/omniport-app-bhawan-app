@@ -188,9 +188,7 @@ class ComplaintViewset(viewsets.ModelViewSet):
         of complaints
         """
         params = self.request.GET
-        filters = self.get_filters(self.request)
-        queryset = Complaint.objects\
-            .filter(**filters).order_by('-datetime_modified')
+        queryset = self.apply_filters(self.request)
         data = {
             'Applicant Name': [],
             'Complaint Date': [],

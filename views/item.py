@@ -2,8 +2,12 @@ from email.policy import default
 import swapper
 import json
 from datetime import datetime
+import pandas as pd
+
+from django.http import HttpResponse
 
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
@@ -88,5 +92,34 @@ class ItemViewset(viewsets.ModelViewSet):
             datetime_modified=datetime.now(),
         )
         return Response(ItemSerializer(instance).data, status=status.HTTP_201_CREATED)
+
+
+@action(detail=False, methods=['get'])
+def download(self, request, hostel__code):
+    """
+    This method exports a csv corresponding to the list
+    of items
+    """
+    print('hello')
+    params = self.request.GET
+    queryset = self.get_queryset()
+    data = {
+        'Item Name': [],
+        'Quantity': []
+    }
+    for item in queryset:
+        try:
+            data['Item Name'].append(item.name)
+            data['Quantity'].append(item.quantity)
+        except IndexError:
+            pass
+
+    file_name = f'{hostel__code}_items_list.csv'
+    df = pd.DataFrame(data)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=' + file_name
+    df.to_csv(path_or_buf=response, index=False)
+    return response
+
 
     
