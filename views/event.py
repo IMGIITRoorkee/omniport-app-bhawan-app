@@ -14,6 +14,7 @@ from bhawan_app.managers.services import is_hostel_admin, is_global_admin
 from bhawan_app.models.roles import HostelAdmin
 from bhawan_app.models.resident import Resident
 from bhawan_app.utils.notification.push_notification import send_push_notification
+from bhawan_app.utils.email.send_email import send_email
 
 Residence = swapper.load_model('kernel', 'Residence')
 
@@ -75,7 +76,9 @@ class EventViewset(viewsets.ModelViewSet):
             notify_residents = [resident.person.id for resident in all_residents]
             notify_staff = [staff.person.id for staff in all_staff]
             notify_users = list(set(notify_residents + notify_staff))
+            email_body = f""
             send_push_notification(template, True, notify_users)
+            send_email(template, email_body, notify_users, True, request.person.id)
 
             return Response(EventSerializer(event).data, status=status.HTTP_201_CREATED)
         except Exception as e:
