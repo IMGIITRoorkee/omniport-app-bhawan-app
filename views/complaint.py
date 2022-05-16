@@ -25,6 +25,7 @@ from bhawan_app.constants import statuses
 from bhawan_app.constants import complaint_types
 from bhawan_app.pagination.custom_pagination import CustomPagination 
 from bhawan_app.utils.notification.push_notification import send_push_notification
+from bhawan_app.utils.email.send_email import send_email
 
 
 class ComplaintViewset(viewsets.ModelViewSet):
@@ -101,10 +102,13 @@ class ComplaintViewset(viewsets.ModelViewSet):
             complaint_type=complaint_type,
         )
         template = f"New Complaint regarding {instance.complaint_type} by {instance.resident} "
+        email_subject = f"{instance.resident} complained '{instance.description}' regarding {instance.complaint_type}"
+        email_body = f""
         hostel = instance.resident.hostel.id
         all_staff = HostelAdmin.objects.filter(hostel=hostel)
         notify_users = [staff.person.id for staff in all_staff]
         send_push_notification(template, True, notify_users)
+        send_email(email_subject, email_body, notify_users, True, person.id)
 
         return Response(ComplaintSerializer(instance).data)
 
