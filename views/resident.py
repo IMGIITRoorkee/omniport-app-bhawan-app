@@ -298,7 +298,6 @@ class ResidentViewset(viewsets.ModelViewSet):
         filters = {}
         search_query = Q()
         params = self.request.GET
-        
 
         """
         Filter based on feetype
@@ -324,8 +323,10 @@ class ResidentViewset(viewsets.ModelViewSet):
         Filter based on Year
         """
         year = params.get('year', None)
+        
         if year:
-            filters['person__student__current_year'] = year
+            year_array = year.split(',')
+            filters['person__student__current_year__in'] = year_array
 
         is_living_in_campus = params.get('is_living_in_campus', None)
         if is_living_in_campus:
@@ -336,7 +337,16 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         branch = params.get('branch', None)
         if branch:
-            filters['person__student__branch__code'] = branch
+            branch_array = branch.split(',')
+            filters['person__student__branch__code__in'] = branch_array
+
+        """
+        Filter based on Degree
+        """
+        degree = params.get('degree', None)
+        if degree:
+            degree_array = degree.split(',')
+            filters['person__student__branch__degree__code__in'] = degree_array
 
         """
         Filter based on the fact, if person is admin

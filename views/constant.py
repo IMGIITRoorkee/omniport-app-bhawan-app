@@ -14,6 +14,7 @@ from bhawan_app.constants import (
 
 Hostel = swapper.load_model('Kernel', 'Residence')
 Branch = swapper.load_model('Kernel', 'Branch')
+Degree = swapper.load_model('Kernel', 'Degree')
 
 
 class ConstantViewset(
@@ -84,4 +85,5 @@ class ConstantViewset(
         response['branches'] = {
             branch['code']: branch['name'] for branch in branches
         }
+        response['degrees'] = Degree.objects.values_list('code', flat = True)
         return Response(response)
