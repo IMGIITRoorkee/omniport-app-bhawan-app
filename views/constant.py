@@ -10,6 +10,8 @@ from bhawan_app.constants import (
     complaint_items,
     statuses,
     days,
+    room_types,
+    room_occupancy
 )
 
 Hostel = swapper.load_model('Kernel', 'Residence')
@@ -58,6 +60,12 @@ class ConstantViewset(
         mapping = days.DAYS_MAP
         reverse_days = \
             {mapping[key]: key for key in mapping.keys()}
+        mapping = room_types.ROOM_TYPES_MAP
+        reverse_room_types = \
+            {mapping[key]: key for key in mapping.keys()}
+        mapping = room_occupancy.ROOM_OCCUPANCY_MAP
+        reverse_room_occupancy = \
+            {mapping[key]: key for key in mapping.keys()}
 
         response = {}
         response['designations'] = {
@@ -76,6 +84,10 @@ class ConstantViewset(
             'FEE_TYPES': reverse_fee_types_map,
         }
         response['days'] = reverse_days
+        response['room_types'] = reverse_room_types
+        response['room_types_list'] = room_types.ROOM_TYPES_LIST
+        response['room_occupancy'] = reverse_room_occupancy
+        response['room_occupancy_list'] = room_occupancy.ROOM_OCCUPANCY_LIST
 
         hostels = Hostel.objects.all()
         response['hostels'] = {

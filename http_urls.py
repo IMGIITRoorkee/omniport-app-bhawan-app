@@ -14,6 +14,8 @@ from bhawan_app.views.complaint_time_slot import ComplaintTimeSlotViewset
 from bhawan_app.views.hostel_admin import HostelAdminViewset
 from bhawan_app.views.constant import ConstantViewset
 from bhawan_app.views.resident import ResidentViewset
+from bhawan_app.views.room import RoomViewset
+from bhawan_app.views.student_accommodation import StudentAccommodationViewset
 
 
 
@@ -61,6 +63,13 @@ router.register(
 router.register(
     r"(?P<hostel__code>[\w\-]+)/admin", HostelAdminViewset, basename="admin",
 )
+router.register(
+    r"(?P<hostel__code>[\w\-]+)/room", RoomViewset, basename="room",
+)
+router.register(
+    r"(?P<hostel__code>[\w\-]+)/student_accommodation", StudentAccommodationViewset, basename="student_accommodation",
+)
+
 
 urlpatterns = [
     path(

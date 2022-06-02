@@ -12,7 +12,9 @@ from bhawan_app.models import (
     Visitor,
     Event,
     ComplaintTimeSlot,
-    Resident
+    Resident,
+    Room,
+    StudentAccommodation
 )
 
 from bhawan_app.models.roles import HostelAdmin
@@ -30,4 +32,6 @@ omnipotence.register(Visitor)
 omnipotence.register(Event)
 omnipotence.register(ComplaintTimeSlot)
 omnipotence.register(Resident)
+omnipotence.register(Room)
+omnipotence.register(StudentAccommodation)
 

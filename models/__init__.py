@@ -11,4 +11,5 @@ from bhawan_app.models.roles import HostelAdmin
 from bhawan_app.models.event import Event
 from bhawan_app.models.complaint_time_slot import ComplaintTimeSlot
 from bhawan_app.models.resident import Resident
-
+from bhawan_app.models.room import Room
+from bhawan_app.models.student_accommodation import StudentAccommodation
