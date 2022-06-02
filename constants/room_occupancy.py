@@ -2,9 +2,9 @@
 The occupancy of rooms in any Bhawan
 """
 
-SINGLE = "sgl"
-DOUBLE = "dbl"
-TRIPLE = "tri"
+SINGLE = "1"
+DOUBLE = "2"
+TRIPLE = "3"
 
 ROOM_OCCUPANCY = (
     (SINGLE, "Single"),
