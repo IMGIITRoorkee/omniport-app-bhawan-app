@@ -1,4 +1,7 @@
 import swapper
+
+from datetime import datetime
+
 from django.db import models
 from django.core.exceptions import ValidationError
 
@@ -45,7 +48,7 @@ class Resident(Model):
         null=True,
         blank=True
     )
-    start_date = models.DateTimeField(auto_now_add=True)
+    start_date = models.DateTimeField(default=datetime.now)
     end_date = models.DateTimeField(null=True, blank=True)
     is_living_in_campus = models.BooleanField(default = True)
     fee_type = models.CharField(

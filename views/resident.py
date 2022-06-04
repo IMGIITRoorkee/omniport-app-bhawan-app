@@ -65,6 +65,7 @@ class ResidentViewset(viewsets.ModelViewSet):
         try:
             person_id = data['person']
             room_number = data['room_number']
+            start_date = data['start_date']
         except Exception:
             return Response(
                 "Invalid field values for invalid input",
@@ -161,6 +162,7 @@ class ResidentViewset(viewsets.ModelViewSet):
         instance = Resident.objects.create(
             person=person,
             room_number=room_number,
+            start_date=start_date,
             hostel=hostel,
             fee_type=fee_type,
             is_living_in_campus=is_living_in_campus,
@@ -275,6 +277,9 @@ class ResidentViewset(viewsets.ModelViewSet):
 
         if "room_number" in data:
             instance.room_number = data.get("room_number")
+
+        if "start_date" in data:
+            instance.start_date = data.get("start_date")
 
         if "is_living_in_campus" in data:
             instance.is_living_in_campus = data.get("is_living_in_campus")
