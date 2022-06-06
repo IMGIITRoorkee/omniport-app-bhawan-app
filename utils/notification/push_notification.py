@@ -10,7 +10,8 @@ def send_push_notification(
     persons=None,
     is_personalised=False,
     person=None,
-    web_onclick_url=''
+    web_onclick_url='',
+    send_only_to_subscribed_users=False,
 ):
     """
     :param template: template message
@@ -34,4 +35,5 @@ def send_push_notification(
         person=person,
         has_custom_users_target=has_custom_user_target,
         persons=persons,
+        send_only_to_subscribed_users=send_only_to_subscribed_users,
     )

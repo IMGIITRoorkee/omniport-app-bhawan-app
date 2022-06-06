@@ -10,6 +10,7 @@ def send_email(
     has_custom_user_target=True,
     by=None,
     check_if_primary_email_verified=True,
+    send_only_to_subscribed_users=False,
 ):
     """
     Utility to send an email
@@ -45,4 +46,5 @@ def send_email(
         by=by,
         target_app_name=app_verbose_name,
         target_app_url=full_path,
+        send_only_to_subscribed_users=send_only_to_subscribed_users,
     )

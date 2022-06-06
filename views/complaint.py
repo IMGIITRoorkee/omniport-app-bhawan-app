@@ -107,8 +107,8 @@ class ComplaintViewset(viewsets.ModelViewSet):
         hostel = instance.resident.hostel.id
         all_staff = HostelAdmin.objects.filter(hostel=hostel)
         notify_users = [staff.person.id for staff in all_staff]
-        send_push_notification(template, True, notify_users)
-        send_email(email_subject, email_body, notify_users, True, person.id)
+        send_push_notification(template, True, persons=notify_users,send_only_to_subscribed_users=True)
+        send_email(email_subject, email_body, notify_users, True, person.id,send_only_to_subscribed_users=True,)
 
         return Response(ComplaintSerializer(instance).data)
 
