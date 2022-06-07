@@ -77,6 +77,11 @@ urlpatterns = [
         PersonalInfoView.as_view(),
         name='personal_info',
     ),
+    path('accomodation_data/download/', StudentAccommodationViewset.as_view({
+            'get': 'download_all'
+        }), 
+        name='accomodation_data_download',
+    ),
 ]
 
 

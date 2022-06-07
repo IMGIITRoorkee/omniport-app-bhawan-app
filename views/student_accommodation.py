@@ -1,15 +1,18 @@
 import swapper
 import json
+import pandas as pd
 
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.http import HttpResponse
 
-from bhawan_app.models import StudentAccommodation
+from bhawan_app.models import StudentAccommodation, Room
 from bhawan_app.models.roles import HostelAdmin
 from bhawan_app.serializers.student_accommodation import StudentAccommodationSerializer
 from bhawan_app.managers.services import is_hostel_admin, is_global_admin
-
+from bhawan_app.constants import room_types
 
 Residence = swapper.load_model('kernel', 'Residence')
 
@@ -77,3 +80,72 @@ class StudentAccommodationViewset(viewsets.ModelViewSet):
             {"You are not allowed to perform this action !"},
             status=status.HTTP_403_FORBIDDEN,
         )
+
+    
+    @action(detail=False, methods=['get'])
+    def download_all(self, request):
+        """
+        This method exports a csv with details of accomodation
+        in each hostel.
+        """
+        
+        if not is_global_admin(request.person):
+            return Response(
+            {"You are not allowed to perform this action !"},
+            status=status.HTTP_403_FORBIDDEN,
+            )
+
+        queryset = Residence.objects.all()
+        data = {
+            'Bhawan': [],
+            'Net accommodation capacity': [],
+            'Presently residing registered residents': [],
+            'Presently residing non-registered residents': [],
+            'Total residents': [],
+        }
+        for residence in queryset:
+            data['Bhawan'].append(residence.code)
+            total_residents = 0
+
+            try:
+                registered_accommodation =  StudentAccommodation.objects.get(hostel = residence , is_registered = True)
+                total_registered_residents = registered_accommodation.residing_in_single + registered_accommodation.residing_in_double \
+                                            + registered_accommodation.residing_in_triple
+                total_residents = total_residents + total_registered_residents
+                data['Presently residing registered residents'].append(total_registered_residents)
+            except:
+                data['Presently residing registered residents'].append(0)
+
+            try:
+                non_registered_accommodation =  StudentAccommodation.objects.get(hostel = residence , is_registered = False)
+                total_non_registered_residents = non_registered_accommodation.residing_in_single + non_registered_accommodation.residing_in_double \
+                                            + non_registered_accommodation.residing_in_triple
+                total_residents = total_residents + total_non_registered_residents                            
+                data['Presently residing non-registered residents'].append(total_non_registered_residents)
+            except:
+                data['Presently residing non-registered residents'].append(0)
+
+            data['Total residents'].append(total_residents)
+            rooms = Room.objects.filter(hostel = residence)
+            accommodation_capacity = 0
+
+            for room in rooms:
+                if room.room_type == room_types.TOTAL:
+                    accommodation_capacity = accommodation_capacity + room.count
+                else:
+                    accommodation_capacity = accommodation_capacity = room.count
+
+            data['Net accommodation capacity'].append(accommodation_capacity)
+
+        file_name = 'Bhawan_accommodation_list.csv'
+        df = pd.DataFrame(data)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=' + file_name
+        df.to_csv(path_or_buf=response, index=False)
+        return response
+            
+
+                
+
+                
+
