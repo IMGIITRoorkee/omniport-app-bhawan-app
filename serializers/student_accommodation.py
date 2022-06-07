@@ -20,6 +20,7 @@ class StudentAccommodationSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'hostel',
+            'is_registered',
             'residing_in_single',
             'residing_in_double',
             'residing_in_triple',

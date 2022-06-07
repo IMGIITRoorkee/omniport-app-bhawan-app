@@ -14,6 +14,7 @@ class StudentAccommodation(Model):
         on_delete=models.CASCADE,
         null=True
     )
+    is_registered = models.BooleanField(default=True)
     residing_in_single = models.PositiveIntegerField(
         default=0,
     )
