@@ -143,9 +143,3 @@ class StudentAccommodationViewset(viewsets.ModelViewSet):
         response['Content-Disposition'] = 'attachment; filename=' + file_name
         df.to_csv(path_or_buf=response, index=False)
         return response
-            
-
-                
-
-                
-
