@@ -66,6 +66,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             person_id = data['person']
             room_number = data['room_number']
             start_date = data['start_date']
+            fee_type = data['fee_type']
         except Exception:
             return Response(
                 "Invalid field values for invalid input",
@@ -85,13 +86,10 @@ class ResidentViewset(viewsets.ModelViewSet):
                 "Residence doesn't exist !",
                 status=status.HTTP_404_NOT_FOUND,
             )
+            
+        is_living_in_campus = True
         try:
             is_living_in_campus = data['is_living_in_campus']
-        except:
-            pass
-
-        try:
-            fee_type = data['fee_type']
         except:
             pass
 
