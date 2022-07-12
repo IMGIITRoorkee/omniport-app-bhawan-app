@@ -12,7 +12,7 @@ from bhawan_app.models import StudentAccommodation, Room
 from bhawan_app.models.roles import HostelAdmin
 from bhawan_app.serializers.student_accommodation import StudentAccommodationSerializer
 from bhawan_app.managers.services import is_hostel_admin, is_global_admin
-from bhawan_app.constants import room_types
+from bhawan_app.constants import room_types,room_occupancy
 
 Residence = swapper.load_model('kernel', 'Residence')
 
@@ -102,9 +102,10 @@ class StudentAccommodationViewset(viewsets.ModelViewSet):
             'Presently residing registered residents': [],
             'Presently residing non-registered residents': [],
             'Total residents': [],
+            'Present vacant seats for students':[],
         }
         for residence in queryset:
-            data['Bhawan'].append(residence.code)
+            data['Bhawan'].append(residence.name)
             total_residents = 0
 
             try:
@@ -130,13 +131,18 @@ class StudentAccommodationViewset(viewsets.ModelViewSet):
             accommodation_capacity = 0
 
             for room in rooms:
+                capacity = room.count
+                if(room.occupancy == room_occupancy.DOUBLE):
+                    capacity = capacity*2
+                if(room.occupancy == room_occupancy.TRIPLE):
+                    capacity = capacity*3
                 if room.room_type == room_types.TOTAL:
-                    accommodation_capacity = accommodation_capacity + room.count
+                    accommodation_capacity = accommodation_capacity + capacity
                 else:
-                    accommodation_capacity = accommodation_capacity = room.count
+                    accommodation_capacity = accommodation_capacity - capacity
 
             data['Net accommodation capacity'].append(accommodation_capacity)
-
+            data['Present vacant seats for students'].append(accommodation_capacity-total_residents)
         file_name = 'Bhawan_accommodation_list.csv'
         df = pd.DataFrame(data)
         response = HttpResponse(content_type='text/csv')
