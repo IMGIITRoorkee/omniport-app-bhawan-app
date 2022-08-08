@@ -2,6 +2,7 @@ from formula_one.enums.active_status import ActiveStatus
 from bhawan_app.models.roles import HostelAdmin
 from bhawan_app.constants import designations
 
+from kernel.managers.get_role import get_role
 
 def get_hostel_admin(person, hostel_code, active_status=ActiveStatus.ANY):
     """
@@ -22,8 +23,6 @@ def is_global_admin(person):
     Determine if the person has the global administrative priviliges
     """
     return HostelAdmin.objects.filter(person=person, designation__in=designations.GLOBAL_COUNCIL_LIST).first()
-
-
 
 def is_supervisor(person, hostel_code):
     """
@@ -60,3 +59,20 @@ def is_hostel_admin(person, hostel_code):
 
     hostel_admin = get_hostel_admin(person, hostel_code)
     return hostel_admin is not None
+
+def is_senior_maintainer(person):
+    """
+    Returns if the person is a senior maintainer or not
+    :param person: an instance of the Person model whose roles are sought
+    :return: if the person is senior maintainer or not
+    """
+
+    maintainer = get_role(
+            person=person,
+            role_name='Maintainer',
+            active_status=ActiveStatus.IS_ACTIVE,
+            silent=True,
+        )
+    if maintainer:
+        return person.student.current_semester > 4
+    return False

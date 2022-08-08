@@ -16,6 +16,7 @@ from bhawan_app.views.constant import ConstantViewset
 from bhawan_app.views.resident import ResidentViewset
 from bhawan_app.views.room import RoomViewset
 from bhawan_app.views.student_accommodation import StudentAccommodationViewset
+from bhawan_app.views.upload_bhawan_data import UploadBhawanDataViewset
 
 
 
@@ -69,7 +70,9 @@ router.register(
 router.register(
     r"(?P<hostel__code>[\w\-]+)/student_accommodation", StudentAccommodationViewset, basename="student_accommodation",
 )
-
+router.register(
+    r"(?P<hostel__code>[\w\-]+)/upload_bhawan_data", UploadBhawanDataViewset, basename="upload_bhawan_data",
+)
 
 urlpatterns = [
     path(

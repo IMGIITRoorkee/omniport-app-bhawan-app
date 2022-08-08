@@ -1,5 +1,4 @@
 import swapper
-import json
 import pandas as pd
 
 from rest_framework import viewsets, status
@@ -9,7 +8,6 @@ from rest_framework.permissions import IsAuthenticated
 from django.http import HttpResponse
 
 from bhawan_app.models import StudentAccommodation, Room
-from bhawan_app.models.roles import HostelAdmin
 from bhawan_app.serializers.student_accommodation import StudentAccommodationSerializer
 from bhawan_app.managers.services import is_hostel_admin, is_global_admin
 from bhawan_app.constants import room_types,room_occupancy

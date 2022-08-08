@@ -32,6 +32,9 @@ class PersonalInfoSerializer(serializers.Serializer):
     is_student = serializers.SerializerMethodField(
         read_only=True,
     )
+    is_maintainer = serializers.SerializerMethodField(
+        read_only=True,
+    )
     full_name = serializers.CharField(
         source='person.full_name',
     )
@@ -48,6 +51,7 @@ class PersonalInfoSerializer(serializers.Serializer):
             'hostel',
             'room_number',
             'is_student',
+            'is_maintainer',
             'room_number',
             'is_warden',
         ]
@@ -168,6 +172,21 @@ class PersonalInfoSerializer(serializers.Serializer):
             silent=True,
         )
         return role_student is not None
+    
+    def get_is_maintainer(self, obj):
+        """
+        Checks if the authenticated user is a maintainer or not
+        :param obj: an instance of ResidentialInformation
+        :return: a boolean if the authenticated user is a maintainer or not
+        """
+
+        role_maintainer = get_role(
+            person=obj.person,
+            role_name='Maintainer',
+            active_status=ActiveStatus.IS_ACTIVE,
+            silent=True,
+        )
+        return role_maintainer is not None
 
     def get_is_resident(self, obj):
         """
