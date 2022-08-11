@@ -9,6 +9,7 @@ FORWARDED = "fwd"
 CONFIRMED = "cnf"
 RESOLVED = "res"
 UNRESOLVED = "unr"
+INPROCESS = "ipr"
 LIVING = "liv"
 NOT_LIVING = "nlv"
 NON_DINING = "nd"
@@ -18,6 +19,7 @@ COMLAINT_STATUSES = [
     (RESOLVED, "Resolved"),
     (PENDING, "Pending"),
     (UNRESOLVED, "Unresolved"),
+    (INPROCESS, "Inprocess")
 ]
 BOOKING_STATUSES = [
     (APPROVED, "Approved"),
@@ -37,6 +39,7 @@ COMLAINT_STATUSES_MAP = {
     'RESOLVED':  RESOLVED,
     'UNRESOLVED': UNRESOLVED,
     'PENDING': PENDING,
+    'INPROCESS':INPROCESS,
 }
 BOOKING_STATUSES_MAP = {
     'APPROVED': APPROVED,
