@@ -110,21 +110,29 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
                 elif fee_status == "nd":
                     fee_type = "nd"
 
+                if start_date == "":
+                    invalid_data['Student enrollment no'].append(student_enrollement_no)
+                    invalid_data['Error while uploading'].append('Start date not found')
+                    continue
+
+                for character in ['/','-']:
+                    start_date = start_date.replace(character,'.')
+
                 start_date_format = start_date
-                if start_date != "":
-                    valid_date = False
-                    start_date = start_date.strip()
-                    for fmt in ('%d-%m-%y', '%d.%m.%Y', '%d/%m/%Y', '%d.%m-%y', '%d-%m.%y'):
-                        try:
-                            valid_date = True
-                            start_date_format = datetime.strptime(start_date, fmt)
-                        except ValueError:
-                            pass
-                    if not valid_date:
-                        invalid_data['Student enrollment no'].append(student_enrollement_no)
-                        invalid_data['Error while uploading'].append('Start date not found')
-                        continue
-                
+                valid_date = False
+
+                for fmt in ['%d.%m.%Y', '%d.%m.%y']:
+                    try:
+                        start_date_format = datetime.strptime(start_date, fmt)
+                        valid_date = True
+                    except:
+                        pass
+
+                if(not valid_date):
+                    invalid_data['Student enrollment no'].append(student_enrollement_no)
+                    invalid_data['Error while uploading'].append('Invalid start date format')
+                    continue
+
                 try:
                     Resident.objects.update_or_create(
                         person = person,
