@@ -23,6 +23,7 @@ class RoomSerializer(serializers.ModelSerializer):
             'room_type',
             'occupancy',
             'count',
+            'datetime_modified',
         ]
 
     def create(self, validated_data):
