@@ -24,7 +24,8 @@ class StudentAccommodationSerializer(serializers.ModelSerializer):
             'residing_in_single',
             'residing_in_double',
             'residing_in_triple',
-            'total_need_accommodation'
+            'total_need_accommodation',
+            'datetime_modified'
         ]
 
     def create(self, validated_data):
