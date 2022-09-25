@@ -153,7 +153,7 @@ class StudentAccommodationViewset(viewsets.ModelViewSet):
             data['Net accommodation capacity'].append(accommodation_capacity)
             data['Present vacant seats for students'].append(accommodation_capacity-total_residents)
             if last_modified != base_datetime: 
-                data['Last Modified'].append(last_modified+offset)
+                data['Last Modified'].append(str(last_modified+offset)[:19])
             else: 
                 data['Last Modified'].append('Data never changed')
         file_name = 'Bhawan_accommodation_list.csv'
