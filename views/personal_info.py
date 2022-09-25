@@ -43,4 +43,9 @@ class PersonalInfoView(generics.RetrieveAPIView):
             )
         instance = admin if admin else resident
         serializer = PersonalInfoSerializer(instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        is_admin = False
+        if admin:
+            is_admin = True
+        data={'isAdmin':is_admin}
+        data.update(serializer.data)
+        return Response(data, status=status.HTTP_200_OK)

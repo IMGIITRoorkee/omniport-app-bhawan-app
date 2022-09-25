@@ -128,7 +128,7 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
                     except:
                         pass
 
-                if(not valid_date):
+                if not valid_date :
                     invalid_data['Student enrollment no'].append(student_enrollement_no)
                     invalid_data['Error while uploading'].append('Invalid start date format')
                     continue
