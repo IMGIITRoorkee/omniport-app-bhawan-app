@@ -1,4 +1,5 @@
-import swapper
+import swapper, pytz, time
+from datetime import datetime
 import pandas as pd
 
 from rest_framework import viewsets, status
@@ -101,17 +102,23 @@ class StudentAccommodationViewset(viewsets.ModelViewSet):
             'Presently residing non-registered residents': [],
             'Total residents': [],
             'Present vacant seats for students':[],
+            'Last Modified':[],
         }
+        datetime_now = time.time()
+        offset = datetime.fromtimestamp(datetime_now) - datetime.utcfromtimestamp(datetime_now)
         for residence in queryset:
             data['Bhawan'].append(residence.name)
             total_residents = 0
-
+            last_modified = pytz.utc.localize(datetime(2000, 12, 25))
+            base_datetime = last_modified
             try:
                 registered_accommodation =  StudentAccommodation.objects.get(hostel = residence , is_registered = True)
                 total_registered_residents = registered_accommodation.residing_in_single + registered_accommodation.residing_in_double \
                                             + registered_accommodation.residing_in_triple
                 total_residents = total_residents + total_registered_residents
                 data['Presently residing registered residents'].append(total_registered_residents)
+                if registered_accommodation.datetime_modified > last_modified:
+                    last_modified = registered_accommodation.datetime_modified
             except:
                 data['Presently residing registered residents'].append(0)
 
@@ -121,6 +128,8 @@ class StudentAccommodationViewset(viewsets.ModelViewSet):
                                             + non_registered_accommodation.residing_in_triple
                 total_residents = total_residents + total_non_registered_residents                            
                 data['Presently residing non-registered residents'].append(total_non_registered_residents)
+                if non_registered_accommodation.datetime_modified > last_modified:
+                    last_modified = non_registered_accommodation.datetime_modified
             except:
                 data['Presently residing non-registered residents'].append(0)
 
@@ -138,9 +147,15 @@ class StudentAccommodationViewset(viewsets.ModelViewSet):
                     accommodation_capacity = accommodation_capacity + capacity
                 else:
                     accommodation_capacity = accommodation_capacity - capacity
+                if room.datetime_modified > last_modified:
+                    last_modified = room.datetime_modified
 
             data['Net accommodation capacity'].append(accommodation_capacity)
             data['Present vacant seats for students'].append(accommodation_capacity-total_residents)
+            if last_modified != base_datetime: 
+                data['Last Modified'].append(last_modified+offset)
+            else: 
+                data['Last Modified'].append('Data never changed')
         file_name = 'Bhawan_accommodation_list.csv'
         df = pd.DataFrame(data)
         response = HttpResponse(content_type='text/csv')
