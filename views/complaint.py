@@ -222,7 +222,7 @@ class ComplaintViewset(viewsets.ModelViewSet):
                 data['Contact No.'].append(get_phone_number(complain.resident))
                 data['Applicant Room'].append(complain.resident.room_number)
                 data['Unsuccesful attempts'].append(complain.failed_attempts)
-                data['Status'].append(complain.status)
+                data['Status'].append(complain.get_status_display())
             except IndexError:
                 pass
 
