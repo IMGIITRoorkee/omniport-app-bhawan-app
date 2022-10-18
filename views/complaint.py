@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 import pandas as pd
 
 from rest_framework import mixins, viewsets, status
@@ -97,7 +97,7 @@ class ComplaintViewset(viewsets.ModelViewSet):
         instance = Complaint.objects.create(
             resident=resident,
             status=statuses.PENDING,
-            datetime_modified=datetime.now(),
+            datetime_modified=datetime.datetime.now(),
             description=description,
             complaint_type=complaint_type,
         )
@@ -133,7 +133,7 @@ class ComplaintViewset(viewsets.ModelViewSet):
 
         serializer = ComplaintSerializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save(datetime_modified=datetime.now())
+        serializer.save(datetime_modified=datetime.datetime.now())
         return Response(serializer.data)
 
     def apply_filters(self, request):
@@ -143,6 +143,7 @@ class ComplaintViewset(viewsets.ModelViewSet):
         """
         filters = {}
         search_query = Q()
+        date_query = Q()
         params = self.request.GET
         
         """
@@ -178,6 +179,19 @@ class ComplaintViewset(viewsets.ModelViewSet):
                 search_query = Q(resident__person__student__enrolment_number__contains=search) | Q(resident__person__full_name__icontains=search)
 
         """
+        Apply the filters based on start date and end date.
+        Usage: /complaint/?date=<start_date>/<end_date>
+        """
+        if 'date' in params.keys():
+            data = params['date'].split('/')
+            start_date, end_date = data[0], data[1]
+            start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
+            end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+            end_date = datetime.datetime.combine(end_date, datetime.time.max)
+            if start_date and end_date:
+                date_query = Q(datetime_created__range=(start_date, end_date))
+
+        """
         Filter based on hostel
         """
         filters['resident__hostel__code']= self.kwargs["hostel__code"]
@@ -191,7 +205,7 @@ class ComplaintViewset(viewsets.ModelViewSet):
         if me or (not is_hostel_admin(request.person, self.kwargs["hostel__code"]) and not is_global_admin(request.person)):
             filters['resident__person'] = request.person.id
 
-        queryset = Complaint.objects.filter(**filters).filter(search_query).order_by('-datetime_modified')
+        queryset = Complaint.objects.filter(**filters).filter(search_query).filter(date_query).order_by('-datetime_modified')
      
         return queryset
 
