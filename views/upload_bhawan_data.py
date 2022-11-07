@@ -50,6 +50,14 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
                 "No CSV file provided !",
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+        complete_list = data.get('complete_list')
+
+        if (not complete_list) or complete_list == 'false':
+            complete_list = False
+        else:
+            complete_list = True
+
         ROOM_NA = ['', 'Not Joined', 'Not joined yet', 'NOT ALLOWTED', 'Pending', 'Not Joining yet', 'not joined yet', 'Not Joined Yet']
         invalid_data = {
             'Student enrollment no': [],
@@ -150,12 +158,18 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
                     invalid_data['Student enrollment no'].append(student_enrollement_no)
                     invalid_data['Error while uploading'].append('Unable to update data')
                     continue
-        prev_residents = set(prev_residents).difference(set(present_residents))
+
+        if complete_list:
+            prev_residents = set(prev_residents).difference(set(present_residents))
+        else:
+            prev_residents = Resident.objects.none()
+
         for resident in prev_residents:
             resident_obj = Resident.objects.get(id=resident.id)
             resident_obj.end_date = datetime.now()
             resident_obj.is_resident = False
             resident_obj.save()
+
         invalid_data['Student enrollment no'].append('')
         invalid_data['Error while uploading'].append('')
         invalid_data['Student enrollment no'].append("Bhawan data for students other than above mentioned(possibly none) updated.")
