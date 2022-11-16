@@ -2,31 +2,33 @@ import swapper
 
 from bhawan_app.models.resident import Resident
 from base_auth.managers.get_user import get_user
+from shell.constants import residences
 
 ResidentialInformation = swapper.load_model('kernel', 'ResidentialInformation')
+Student = swapper.load_model('kernel', 'Student')
+Residence = swapper.load_model('kernel','Residence')
 
-def update_residents(list=[]):
+def update_residents():
 
-    resident_list = []
-    invalid_erns = []
+    students = Student.objects.all()
 
-    if len(list) == 0:
-        resident_list = Resident.objects.all()
-    else:
-        for ern in list:
-            try:
-                resident_list.append(Resident.objects.get(person=get_user(ern).person,is_resident=True))
-            except:
-                invalid_erns.append(ern)
-
-
-    for resident in resident_list:
-        _ = ResidentialInformation.objects.update_or_create(
+    for student in students:
+        try:
+            resident = Resident.objects.get(person=student.person,is_resident=True)
+            _ = ResidentialInformation.objects.update_or_create(
                 person=resident.person,
                 defaults={
                     'room_number':resident.room_number,
                     'residence':resident.hostel,
                 }
             )
+        except:
+            _ = ResidentialInformation.objects.update_or_create(
+                person=student.person,
+                defaults={
+                    'room_number':'NA',
+                    'residence':Residence.objects.get(code=residences.NON_RESIDENT),
+                }
+            )
 
-    return "Following enrollements are either invalid or non residents:",invalid_erns,"Other resident info updated."
+    return "Residential Information updated for students."
