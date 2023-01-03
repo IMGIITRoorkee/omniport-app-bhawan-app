@@ -56,7 +56,7 @@ class ResidentViewset(viewsets.ModelViewSet):
 
     def get_queryset(self):
         params = self.request.GET
-        queryset = Resident.objects.filter(is_resident = True)
+        queryset = Resident.objects.all()
         queryset = self.apply_filters(self.request, queryset)
         return queryset
 
@@ -303,6 +303,12 @@ class ResidentViewset(viewsets.ModelViewSet):
         params = self.request.GET
 
         """
+        Filter based on the fact, if person is resident
+        """
+        is_resident = strtobool(params.get('is_resident', 'true'))
+        filters['is_resident'] = is_resident
+
+        """
         Filter based on feetype
         """
         fee_type = params.get('feeType', None)
@@ -319,7 +325,7 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         Filter based on hostel
         """
-        if not params.get('all'):
+        if not params.get('all') and is_resident:
             filters['hostel__code'] = self.kwargs['hostel__code']
 
         """
@@ -375,6 +381,9 @@ class ResidentViewset(viewsets.ModelViewSet):
                 queryset = queryset.filter(person__student__isnull=True)
 
         queryset = queryset.filter(**filters).filter(search_query).order_by('-datetime_modified')
+
+        if not is_resident:
+            queryset = queryset.order_by('person').distinct('person')
 
         return queryset
 
@@ -526,7 +535,7 @@ class ResidentViewset(viewsets.ModelViewSet):
         of students
         """
         params = self.request.GET
-        queryset = Resident.objects.filter(is_resident = True)
+        queryset = Resident.objects.all()
         queryset = self.apply_filters(self.request, queryset)
         data = {
             'Enrolment No.': [],
