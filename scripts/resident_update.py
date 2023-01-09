@@ -1,8 +1,11 @@
 import swapper
+import logging
 
 from bhawan_app.models.resident import Resident
 from base_auth.managers.get_user import get_user
 from shell.constants import residences
+
+logger = logging.getLogger('bhawan_app.scripts.resident_update')
 
 ResidentialInformation = swapper.load_model('kernel', 'ResidentialInformation')
 Student = swapper.load_model('kernel', 'Student')
@@ -22,7 +25,7 @@ def update_residents():
                     'residence':resident.hostel,
                 }
             )
-        except:
+        except Resident.DoesNotExist:
             _ = ResidentialInformation.objects.update_or_create(
                 person=student.person,
                 defaults={
@@ -30,5 +33,7 @@ def update_residents():
                     'residence':Residence.objects.get(code=residences.NON_RESIDENT),
                 }
             )
+        except:
+            logger.info(f"error:{student.enrolment_number}")
 
-    return "Residential Information updated for students."
+    return "Residential Information updated for students, check log file for any errors."
