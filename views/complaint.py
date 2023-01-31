@@ -152,7 +152,7 @@ class ComplaintViewset(viewsets.ModelViewSet):
         """
         if 'status' in params.keys():
             status_list = params.getlist('status')
-            mapping = statuses.COMLAINT_STATUSES_MAP
+            mapping = statuses.COMPLAINT_STATUSES_MAP
             status_codes = [\
                 mapping[key] for key in status_list\
                 if key in mapping.keys()\
@@ -227,16 +227,16 @@ class ComplaintViewset(viewsets.ModelViewSet):
             'Unsuccesful attempts': [],
             'Status': [],
         }
-        for complain in queryset:
+        for complaint in queryset:
             try:
-                data['Applicant Name'].append(complain.resident.person.full_name)
-                data['Complaint Date'].append(complain.datetime_created.strftime("%I:%M%p %d%b%Y"))
-                data['Complaint Type'].append(complain.get_complaint_type_display())
-                data['Description'].append(complain.description)
-                data['Contact No.'].append(get_phone_number(complain.resident))
-                data['Applicant Room'].append(complain.resident.room_number)
-                data['Unsuccesful attempts'].append(complain.failed_attempts)
-                data['Status'].append(complain.get_status_display())
+                data['Applicant Name'].append(complaint.resident.person.full_name)
+                data['Complaint Date'].append(complaint.datetime_created.strftime("%I:%M%p %d%b%Y"))
+                data['Complaint Type'].append(complaint.get_complaint_type_display())
+                data['Description'].append(complaint.description)
+                data['Contact No.'].append(get_phone_number(complaint.resident))
+                data['Applicant Room'].append(complaint.resident.room_number)
+                data['Unsuccesful attempts'].append(complaint.failed_attempts)
+                data['Status'].append(complaint.get_status_display())
             except IndexError:
                 pass
 

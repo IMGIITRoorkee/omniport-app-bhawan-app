@@ -26,7 +26,7 @@ class Complaint(Model):
         default=complaint_types.OTHER,
     )
     status = models.CharField(
-        max_length=10, choices=statuses.COMLAINT_STATUSES, default=statuses.PENDING
+        max_length=10, choices=statuses.COMPLAINT_STATUSES, default=statuses.PENDING
     )
     description = models.TextField()
     failed_attempts = models.PositiveIntegerField(

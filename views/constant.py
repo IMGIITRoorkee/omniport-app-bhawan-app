@@ -48,7 +48,7 @@ class ConstantViewset(
         mapping = complaint_items.COMPLAINT_ITEMS_MAP
         reverse_complaint_items_map = \
             {mapping[key]: key for key in mapping.keys()}
-        mapping = statuses.COMLAINT_STATUSES_MAP
+        mapping = statuses.COMPLAINT_STATUSES_MAP
         reverse_complaint_statuses_map = \
             {mapping[key]: key for key in mapping.keys()}
         mapping = statuses.BOOKING_STATUSES_MAP
@@ -79,7 +79,7 @@ class ConstantViewset(
         response['complaint_types'] = reverse_complaint_types_map
         response['complaint_items'] = reverse_complaint_items_map
         response['statues'] = {
-            'COMLAINT_STATUSES': reverse_complaint_statuses_map,
+            'COMPLAINT_STATUSES': reverse_complaint_statuses_map,
             'BOOKING_STATUSES': reverse_booking_statuses_map,
             'FEE_TYPES': reverse_fee_types_map,
         }
