@@ -22,8 +22,7 @@ from bhawan_app.managers.services import (
     is_global_admin,
 )
 from bhawan_app.constants import statuses
-from bhawan_app.constants import complaint_types
-from bhawan_app.pagination.custom_pagination import CustomPagination 
+from bhawan_app.constants import complaint_types 
 from bhawan_app.utils.notification.push_notification import send_push_notification
 from bhawan_app.utils.email.send_email import send_email
 
@@ -36,7 +35,6 @@ class ComplaintViewset(viewsets.ModelViewSet):
     serializer_class = ComplaintSerializer
     allowed_methods = ['GET', 'POST', 'PATCH']
     permission_classes = [IsAuthenticated]
-    pagination_class = CustomPagination
 
     @action(detail=True, methods=['GET'])
     def unsuccessful(self, request, hostel__code, pk=None):
