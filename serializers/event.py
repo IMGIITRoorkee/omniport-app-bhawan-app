@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from bhawan_app.models import Event
 from bhawan_app.serializers.timing import TimingSerializer
+from bhawan_app.serializers.resident import ResidentSerializer
 
 Hostel = swapper.load_model("Kernel", "Residence")
 
@@ -14,6 +15,7 @@ class EventSerializer(serializers.ModelSerializer):
     """
 
     timings = TimingSerializer(many=True,)
+    registered_students = ResidentSerializer(many=True,)
 
     class Meta:
         """
@@ -28,12 +30,16 @@ class EventSerializer(serializers.ModelSerializer):
             "description",
             "display_picture",
             "timings",
+            "registered_students",
+            "location",
+            "deadline_date",
         ]
 
     def create(self, validated_data):
         timing_data = validated_data.pop("timings")
         timing_serializer = TimingSerializer(data=timing_data, many=True)
         timing_serializer.is_valid(raise_exception=True)
+        registered_students = ResidentSerializer(many=True)
 
         hostel_code = self.context["hostel__code"]
         try:
@@ -60,6 +66,13 @@ class EventSerializer(serializers.ModelSerializer):
             timings = timing_serializer.save()
             instance.timings.clear()
             instance.timings.add(*timings)
+        if 'registered_students' in validated_data.keys():
+            students = validated_data.pop('registered_students')
+            students_serializer = ResidentSerializer(data=students, many=True)
+            students_serializer.is_valid(raise_exception=True)
+            students = students_serializer.save()
+            instance.students.clear()
+            instance.students.add(*students)
         return super().update(instance, validated_data)
 
         
