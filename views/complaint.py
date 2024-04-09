@@ -35,6 +35,7 @@ class ComplaintViewset(viewsets.ModelViewSet):
     serializer_class = ComplaintSerializer
     allowed_methods = ['GET', 'POST', 'PATCH']
     permission_classes = [IsAuthenticated]
+    pagination_class = None
 
     @action(detail=True, methods=['GET'])
     def unsuccessful(self, request, hostel__code, pk=None):

@@ -27,6 +27,9 @@ class Event(Model):
     )
     timings = models.ManyToManyField(Timing,)
     date = models.DateField()
+    registered_students = models.ManyToManyField(Resident, related_name='registered_events')
+    location = models.CharField(max_length=255,blank=True)
+    deadline_date=models.DateField()
 
     def __str__(self):
         """
