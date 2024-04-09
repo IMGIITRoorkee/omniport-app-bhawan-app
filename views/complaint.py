@@ -37,6 +37,7 @@ class ComplaintViewset(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = None
 
+
     @action(detail=True, methods=['GET'])
     def unsuccessful(self, request, hostel__code, pk=None):
         instance = self.get_object()
