@@ -144,6 +144,7 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
                 try:
                     Resident.objects.update_or_create(
                         person = person,
+                        hostel = hostel,
                         is_resident = True,
                         defaults = {
                             'person': person,
