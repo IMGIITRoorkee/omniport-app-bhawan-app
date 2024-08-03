@@ -118,10 +118,13 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
                 elif fee_status == "nd":
                     fee_type = "nd"
 
+                start_date_format = start_date
                 if start_date == "":
                     invalid_data['Student enrollment no'].append(student_enrollement_no)
-                    invalid_data['Error while uploading'].append('Start date not found')
-                    continue
+                    invalid_data['Error while uploading'].append('Start date not found, defaulting to current date')
+                    # Instead of skipping the update, set the start_date to default.
+                    start_date_format = datetime.now()
+                    # continue
 
                 for character in ['/','-']:
                     start_date = start_date.replace(character,'.')
