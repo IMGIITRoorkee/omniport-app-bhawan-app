@@ -51,7 +51,7 @@ class Resident(Model):
     start_date = models.DateTimeField(default=datetime.now)
     end_date = models.DateTimeField(null=True, blank=True)
     is_living_in_campus = models.BooleanField(default = True)
-    address_bhawan = models.CharField(max_length=100)
+    address_bhawan = models.CharField(max_length=100,default="")
     registration_date=models.DateTimeField(null=True, blank=True)
     fee_type = models.CharField(
         max_length=10,
