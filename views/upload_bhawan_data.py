@@ -58,7 +58,7 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
         else:
             complete_list = True
 
-        ROOM_NA = ['', 'Not Joined', 'Not joined yet', 'NOT ALLOWTED', 'Pending', 'Not Joining yet', 'not joined yet', 'Not Joined Yet']
+        ROOM_NA = ['', 'Not Joined', 'Not joined yet', 'NOT ALLOWTED', 'Pending', 'Not Joining yet', 'not joined yet', 'Not Joined Yet', 'Not Allotted']
         invalid_data = {
             'Student enrollment no': [],
             'Error while uploading':[]
