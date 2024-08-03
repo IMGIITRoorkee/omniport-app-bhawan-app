@@ -67,6 +67,8 @@ class ResidentViewset(viewsets.ModelViewSet):
             room_number = data['room_number']
             start_date = data['start_date']
             fee_type = data['fee_type']
+            address_bhawan=data['address_bhawan']
+            registration_date=data['registration_date']
         except Exception:
             return Response(
                 "Invalid field values for invalid input",
@@ -169,6 +171,8 @@ class ResidentViewset(viewsets.ModelViewSet):
             mother=mother,
             is_resident=True,
             mothers_contact=mothers_contact,
+            address_bhawan=address_bhawan,
+            registration_date=registration_date,
         )
         return Response(ResidentSerializer(instance).data)
 
@@ -197,6 +201,8 @@ class ResidentViewset(viewsets.ModelViewSet):
             obj["postal_code"] = None
             obj["reservation_category"] = None
             obj["is_living_in_campus"] = False
+            obj["address_bhawan"]=None
+            obj["registration_date"]=None
 
             try:
                 contact_information = \
@@ -555,6 +561,8 @@ class ResidentViewset(viewsets.ModelViewSet):
             'Degree': [],
             'Date of Birth': [],
             'Address': [],
+            'Address Bhawan':[],
+            'Registration Date':[],
             'City': [],
             'State': [],
             'Country': [],
@@ -588,6 +596,8 @@ class ResidentViewset(viewsets.ModelViewSet):
                 data['Department'].append(department[0])
                 data['Date of Birth'].append(self.get_date_of_birth(resident))
                 data['Address'].append(self.get_address(resident))
+                data['Address Bhawan'].append(resident.address_bhawan)
+                data['Registration Date'].append(resident.registration_date)
                 data['City'].append(self.get_city(resident))
                 data['State'].append(self.get_state(resident))
                 data['Country'].append(self.get_country(resident))
