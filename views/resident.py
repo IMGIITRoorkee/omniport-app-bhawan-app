@@ -296,6 +296,13 @@ class ResidentViewset(viewsets.ModelViewSet):
 
         if "fee_type" in data:
             instance.fee_type = data.get("fee_type")
+    
+        if "address_bhawan" in data:
+            instance.address_bhawan = data.get("address_bhawan")
+    
+        if "registration_date" in data:
+            instance.registration_date = data.get("registration_date")
+
         instance.save()
         return Response(ResidentSerializer(instance).data)
 
