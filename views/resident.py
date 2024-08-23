@@ -159,6 +159,11 @@ class ResidentViewset(viewsets.ModelViewSet):
                 mother = Person.objects.create(
                     full_name = mothers_name
                 )
+        
+        reg_date = None
+        if not (registration_date == "Invalid date" or registration_date == ""):
+            reg_date = registration_date
+            
         instance = Resident.objects.create(
             person=person,
             room_number=room_number,
@@ -172,7 +177,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             is_resident=True,
             mothers_contact=mothers_contact,
             address_bhawan=address_bhawan,
-            registration_date=registration_date,
+            registration_date=reg_date,
         )
         return Response(ResidentSerializer(instance).data)
 
@@ -301,7 +306,11 @@ class ResidentViewset(viewsets.ModelViewSet):
             instance.address_bhawan = data.get("address_bhawan")
     
         if "registration_date" in data:
-            instance.registration_date = data.get("registration_date")
+            reg_date = None
+            registration_date = data.get("registration_date")
+            if not (registration_date == "" or registration_date == "Invalid date"):
+                reg_date = registration_date                
+            instance.registration_date = reg_date
 
         instance.save()
         return Response(ResidentSerializer(instance).data)
