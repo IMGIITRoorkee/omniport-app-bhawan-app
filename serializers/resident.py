@@ -47,8 +47,6 @@ class ResidentSerializer(serializers.ModelSerializer):
     date_of_birth = serializers.SerializerMethodField()
     is_resident = serializers.ReadOnlyField(default=True)
     address = serializers.SerializerMethodField()
-    address_bhawan=serializers.SerializerMethodField()
-    registration_date=serializers.SerializerMethodField()
     city = serializers.SerializerMethodField()
     state = serializers.SerializerMethodField()
     country = serializers.SerializerMethodField()
