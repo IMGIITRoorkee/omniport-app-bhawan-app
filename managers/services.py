@@ -47,7 +47,9 @@ def is_warden(person, hostel_code):
     if role is not None:
         return role.designation == designations.WARDEN \
             or role.designation == designations.CHIEF_WARDEN \
-            or role.designation == designations.ASSISTANT_WARDEN
+            or role.designation == designations.ASSISTANT_WARDEN \
+            or role.designation == designations.ASSISTANT_WARDEN_2 \
+            or role.designation == designations.ASSISTANT_WARDEN_3
     return False
 
 def is_hostel_admin(person, hostel_code):
