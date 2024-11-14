@@ -1,3 +1,4 @@
+from calendar import monthrange
 import swapper
 import csv
 import pandas as pd
@@ -58,7 +59,7 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
         else:
             complete_list = True
 
-        ROOM_NA = ['', 'Not Joined', 'Not joined yet', 'NOT ALLOWTED', 'Pending', 'Not Joining yet', 'not joined yet', 'Not Joined Yet']
+        ROOM_NA = ['', 'Not Joined', 'Not joined yet', 'NOT ALLOWTED', 'Pending', 'Not Joining yet', 'not joined yet', 'Not Joined Yet', 'Not Allotted']
         invalid_data = {
             'Student enrollment no': [],
             'Error while uploading':[]
@@ -91,9 +92,16 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
                 in_campus = student_data[11]
                 fee_status = student_data[10]
                 start_date = student_data[12].split('/r/n')[0]
+                # assumed the column indexes of the following fields(as no where is the csv file handled and the script was working before)
+                fathers_name = student_data[13]
+                fathers_phone = student_data[14]
+                mothers_name = student_data[15]
+                mothers_phone = student_data[16]
+                
+                # gets the student's object and checks if it is a resident of new hostel
                 try:
-                    person = Person.objects.get(student__enrolment_number=student_enrollement_no)
-                    present_residents |= Resident.objects.filter(person=person,hostel=hostel)
+                    student = Person.objects.get(student__enrolment_number=student_enrollement_no)
+                    present_residents |= Resident.objects.filter(person=student,hostel=hostel)
                 except:
                     invalid_data['Student enrollment no'].append(student_enrollement_no)
                     invalid_data['Error while uploading'].append('Student not found')
@@ -139,21 +147,60 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
                 if not valid_date :
                     invalid_data['Student enrollment no'].append(student_enrollement_no)
                     invalid_data['Error while uploading'].append('Invalid start date format')
-                    continue
+
 
                 try:
-                    Resident.objects.update_or_create(
-                        person = person,
+                    existing = Resident.objects.get(person=student, is_resident=True)
+                    try:
+                        father = existing.father
+                        if(fathers_name is not None):
+                            father.full_name = fathers_name
+                            father.save()
+                        # else:
+                        #     father.delete()
+                        #     father = None
+                    except:
+                        if(fathers_name is not None):
+                            father = Person.objects.create(
+                                full_name = fathers_name
+                            )
+                        else:
+                            father = None
+                    try:
+                        mother = existing.mother
+                        if(mothers_name is not None):
+                            mother.full_name = mothers_name
+                            mother.save()
+                        # else:
+                        #     mother.delete()
+                        #     mother = None
+                    except:
+                        if(mothers_name is not None):
+                            mother = Person.objects.create(
+                                full_name = mothers_name
+                            )
+                        else:
+                            mother = None
+                    
+
+                    r = Resident.objects.update_or_create(
+                        person = student,
+                        hostel = hostel,
                         is_resident = True,
                         defaults = {
-                            'person': person,
+                            'person': student,
                             'room_number': room_no,
                             'hostel': hostel,
                             'is_living_in_campus': is_living_in_campus,
                             'fee_type': fee_type,
                             'start_date': start_date_format,
+                            'father': father,
+                            'fathers_contact' : fathers_phone,
+                            'mother': mother,
+                            'mothers_contact' : mothers_phone,
                         }
                     )
+
                 except Exception as e:
                     invalid_data['Student enrollment no'].append(student_enrollement_no)
                     invalid_data['Error while uploading'].append('Unable to update data')
@@ -180,3 +227,4 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
         response['Content-Disposition'] = 'attachment; filename=' + file_name
         df.to_csv(path_or_buf=response, index=False)
         return response
+    

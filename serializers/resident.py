@@ -73,6 +73,8 @@ class ResidentSerializer(serializers.ModelSerializer):
             "is_resident",
             "display_picture",
             "address",
+            "address_bhawan",
+            "registration_date",
             "city",
             "state",
             "country",
