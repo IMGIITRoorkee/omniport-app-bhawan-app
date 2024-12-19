@@ -323,7 +323,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             instance.registration_date = reg_date
 
         if "admission_date" in data:
-            instance.admission_date = data.get("admission_date")
+            adm_date = None
             admission_date = data.get("admission_date")
             if not (admission_date == "" or admission_date == "Invalid date"):
                 adm_date = admission_date                
