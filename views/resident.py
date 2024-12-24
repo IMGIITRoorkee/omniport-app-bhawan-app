@@ -584,7 +584,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             'Mothers Contact': [],
             'Degree': [],
             'Date of Birth': [],
-            'Address': [],
+            'Student Home Address as per Bhawan Records': [],
             'Address Bhawan':[],
             'Admission Date':[],
             'Contact Number As Per Bhawan Records':[],
