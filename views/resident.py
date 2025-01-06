@@ -584,8 +584,8 @@ class ResidentViewset(viewsets.ModelViewSet):
             'Mothers Contact': [],
             'Degree': [],
             'Date of Birth': [],
+            'Address':[],
             'Student Home Address as per Bhawan Records': [],
-            'Address Bhawan':[],
             'Admission Date':[],
             'Contact Number As Per Bhawan Records':[],
             'City': [],
@@ -621,7 +621,7 @@ class ResidentViewset(viewsets.ModelViewSet):
                 data['Department'].append(department[0])
                 data['Date of Birth'].append(self.get_date_of_birth(resident))
                 data['Address'].append(self.get_address(resident))
-                data['Address Bhawan'].append(resident.address_bhawan)
+                data['Student Home Address as per Bhawan Records'].append(resident.address_bhawan)
                 data['Admission Date'].append(resident.admission_date)
                 data['Contact Number As Per Bhawan Records'].append(resident.contact_number_as_bhawan)
                 data['City'].append(self.get_city(resident))
