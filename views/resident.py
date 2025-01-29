@@ -622,6 +622,7 @@ class ResidentViewset(viewsets.ModelViewSet):
                     data['Mothers Name'].append("")
                     data['Mothers Contact'].append("")
                 data['Current Year'].append(self.get_current_year(resident))
+                data['Current Semester'].append(self.get_current_semester(resident))
 
                 program = self.get_program(resident)
                 data['Degree'].append(program[1])
@@ -697,6 +698,19 @@ class ResidentViewset(viewsets.ModelViewSet):
         except Student.DoesNotExist:
             return None
         return None
+    
+    def get_current_semester(self, resident):
+        """
+        Retrives the current semester of a resident
+        if he is a student
+        """
+        try:
+            student = Student.objects.get(person=resident.person)
+            return student.current_semester
+        except Student.DoesNotExist:
+            return None
+        return None
+
 
     def get_program(self, resident):
         """
