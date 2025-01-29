@@ -97,5 +97,9 @@ class ConstantViewset(
         response['branches'] = {
             branch['code']: branch['name'] for branch in branches
         }
+        branches = Branch.objects.all()
+        response['departments'] = {
+            branch.department.code: branch.department.name for branch in branches
+        }
         response['degrees'] = Degree.objects.values_list('code', flat = True)
         return Response(response)
