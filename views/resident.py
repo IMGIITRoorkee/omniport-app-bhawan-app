@@ -376,6 +376,23 @@ class ResidentViewset(viewsets.ModelViewSet):
             filters['is_living_in_campus'] = is_living_in_campus
 
         """
+        Filter based on Semester
+        """
+        semester = params.get('semester', None)
+        
+        if semester:
+            semester_array = semester.split(',')
+            filters['person__student__current_semester__in'] = semester_array
+
+        """
+        Filter based on Department
+        """
+        department = params.get('department', None)
+        if department:
+            department_array = department.split(',')
+            filters['person__student__branch__department__code__in'] = department_array
+
+        """
         Filter based on Branch
         """
         branch = params.get('branch', None)
