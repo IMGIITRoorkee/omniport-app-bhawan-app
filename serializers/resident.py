@@ -42,6 +42,7 @@ class ResidentSerializer(serializers.ModelSerializer):
     email_address = serializers.SerializerMethodField()
     enrolment_number = serializers.SerializerMethodField()
     current_year = serializers.SerializerMethodField()
+    program = serializers.SerializerMethodField()
     department = serializers.SerializerMethodField()
     phone_number = serializers.SerializerMethodField()
     date_of_birth = serializers.SerializerMethodField()
@@ -67,6 +68,7 @@ class ResidentSerializer(serializers.ModelSerializer):
             "email_address",
             "enrolment_number",
             "current_year",
+            "program",
             "department",
             "phone_number",
             "date_of_birth",
@@ -132,6 +134,20 @@ class ResidentSerializer(serializers.ModelSerializer):
         except Student.DoesNotExist:
             return None
 
+    def get_program(self, resident):
+        """
+        Retrives the program of a resident
+        if he is a student
+        """
+        try:
+            student = Student.objects.get(person=resident.person)
+            branch = Branch.objects.get(student=student)
+            return [branch.name, branch.degree.name]
+        except Student.DoesNotExist:
+            return None
+        except Branch.DoesNotExist:
+            return None
+    
     def get_department(self, resident):
         """
         Retrives the department of a resident
@@ -140,7 +156,7 @@ class ResidentSerializer(serializers.ModelSerializer):
         try:
             student = Student.objects.get(person=resident.person)
             branch = Branch.objects.get(student=student)
-            return [branch.name, branch.degree.name]
+            return branch.department.name
         except Student.DoesNotExist:
             return None
         except Branch.DoesNotExist:
