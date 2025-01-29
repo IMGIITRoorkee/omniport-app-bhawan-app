@@ -42,6 +42,7 @@ class ResidentSerializer(serializers.ModelSerializer):
     email_address = serializers.SerializerMethodField()
     enrolment_number = serializers.SerializerMethodField()
     current_year = serializers.SerializerMethodField()
+    current_semester = serializers.SerializerMethodField()
     program = serializers.SerializerMethodField()
     department = serializers.SerializerMethodField()
     phone_number = serializers.SerializerMethodField()
@@ -68,6 +69,7 @@ class ResidentSerializer(serializers.ModelSerializer):
             "email_address",
             "enrolment_number",
             "current_year",
+            "current_semester",
             "program",
             "department",
             "phone_number",
@@ -131,6 +133,17 @@ class ResidentSerializer(serializers.ModelSerializer):
         try:
             student = Student.objects.get(person=resident.person)
             return student.current_year
+        except Student.DoesNotExist:
+            return None
+    
+    def get_current_semester(self, resident):
+        """
+        Retrives the current semester of a resident
+        if he is a student
+        """
+        try:
+            student = Student.objects.get(person=resident.person)
+            return student.current_semester
         except Student.DoesNotExist:
             return None
 
