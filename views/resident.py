@@ -599,6 +599,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             'Fee Status': [],
             'Inside Campus': [], 
             'Current Year': [],
+            'Current Semester': [],
             'Program': [],
             'Department': [],
             'Fathers Name': [],
