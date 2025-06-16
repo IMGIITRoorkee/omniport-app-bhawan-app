@@ -57,6 +57,9 @@ router.register(
     r"(?P<hostel__code>[\w\-]+)/resident", ResidentViewset, basename="resident",
 )
 router.register(
+    r"resident", ResidentViewset, basename="all_residents",
+)
+router.register(
     r"(?P<hostel__code>[\w\-]+)/time_slot",
     ComplaintTimeSlotViewset,
     basename="time_slot",
