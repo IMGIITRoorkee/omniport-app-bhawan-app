@@ -359,7 +359,11 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         Filter based on hostel
         """
-        if not params.get('all') and is_resident:
+        hostel = params.get('hostel', None)
+        if hostel:
+            hostel_array = hostel.split(',')
+            filters['hostel__code__in'] = hostel_array
+        elif not params.get('all') and is_resident:
             filters['hostel__code'] = self.kwargs['hostel__code']
 
         """
