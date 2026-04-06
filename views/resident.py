@@ -89,6 +89,16 @@ class ResidentViewset(viewsets.ModelViewSet):
                 "Residence doesn't exist !",
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+        if Resident.objects.filter(
+            person=person,
+            hostel=hostel,
+            is_resident=True,
+        ).exists():
+            return Response(
+                "Student is already registered in this bhawan.",
+                status=status.HTTP_409_CONFLICT,
+            )
             
         is_living_in_campus = True
         try:
