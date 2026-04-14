@@ -34,13 +34,6 @@ class NonResidingStudent(Model):
         to=swapper.get_model_name('kernel', 'Residence'),
         on_delete=models.CASCADE,
     )
-    staying_hostel = models.ForeignKey(
-        to=swapper.get_model_name('kernel', 'Residence'),
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='non_residing_staying_students',
-    )
     name = models.CharField(max_length=255)
     designation = models.CharField(max_length=20, choices=DESIGNATIONS)
     department = models.CharField(max_length=255, blank=True, default='')

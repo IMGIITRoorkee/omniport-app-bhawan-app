@@ -104,7 +104,6 @@ class NonResidingStudentViewset(viewsets.ModelViewSet):
         queryset = self.get_queryset()
         data = {
             'Name of the bhawan': [],
-            'Hostel in which staying': [],
             'Name': [],
             'Designation': [],
             'Department': [],
@@ -117,7 +116,6 @@ class NonResidingStudentViewset(viewsets.ModelViewSet):
 
         for student in queryset:
             data['Name of the bhawan'].append(student.hostel.name)
-            data['Hostel in which staying'].append(student.staying_hostel.name if student.staying_hostel else '')
             data['Name'].append(student.name)
             data['Designation'].append(student.get_designation_display())
             data['Department'].append(student.department)
