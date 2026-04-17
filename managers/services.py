@@ -78,3 +78,26 @@ def is_senior_maintainer(person):
     if maintainer:
         return person.student.current_semester > 4
     return False
+
+def is_any_hostel_admin(person):
+    """
+    Check if the person is a hostel admin (warden/supervisor) at any hostel
+    :param person: an instance of the Person model whose roles are sought
+    :return: True if person is a hostel admin at any hostel, False otherwise
+    """
+    
+
+    hostel_admins = HostelAdmin.objects.filter(person=person)
+    
+    for admin in hostel_admins:
+        if admin.designation in [
+            designations.SUPERVISOR,
+            designations.WARDEN,
+            designations.CHIEF_WARDEN,
+            designations.ASSISTANT_WARDEN,
+            designations.ASSISTANT_WARDEN_2,
+            designations.ASSISTANT_WARDEN_3
+        ]:
+            return True
+    
+    return False

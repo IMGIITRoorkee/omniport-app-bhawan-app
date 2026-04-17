@@ -23,6 +23,7 @@ from bhawan_app.managers.services import (
     is_supervisor,
     is_hostel_admin,
     is_global_admin,
+    is_any_hostel_admin,
 )
 from bhawan_app.pagination.custom_pagination import CustomPagination
 
@@ -46,14 +47,24 @@ class ResidentViewset(viewsets.ModelViewSet):
 
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
-        hostel_code = self.kwargs['hostel__code']
-        if is_warden(request.person, hostel_code) or is_supervisor(request.person, hostel_code) or is_global_admin(request.person):
-            pass
-        else:
+        
+        if is_global_admin(request.person):
+            return
+
+        if not is_any_hostel_admin(request.person):
             raise PermissionDenied(
                 "Only Supervisor and Warden are allowed to perform this action!",
             )
-
+        
+        if request.method in ['POST', 'PATCH']:
+            hostel_code = self.kwargs['hostel__code']
+            if is_warden(request.person, hostel_code) or is_supervisor(request.person, hostel_code) or is_global_admin(request.person):
+                pass
+            else:
+                raise PermissionDenied(
+                    "Only Supervisor and Warden are allowed to perform this action!",
+                )
+            
     def get_queryset(self):
         params = self.request.GET
         queryset = Resident.objects.all()
@@ -359,8 +370,12 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         Filter based on hostel
         """
-        if not params.get('all') and is_resident:
-            filters['hostel__code'] = self.kwargs['hostel__code']
+        hostel_codes_param = params.get('hostel_codes', None)
+        if hostel_codes_param:
+            hostel_codes = hostel_codes_param.split(',')
+            filters['hostel__code__in'] = hostel_codes
+        elif 'hostel__code' in self.kwargs:
+            filters['hostel__code'] = self.kwargs['hostel__code'] #legacy support
 
         """
         Filter based on Year
