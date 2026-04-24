@@ -359,7 +359,17 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         Filter based on hostel
         """
-        if not params.get('all') and is_resident:
+        hostel = params.get('hostel', None)
+        if is_global_admin(self.request.person):
+            # Global admins can list all hostels or a chosen subset.
+            if hostel:
+                hostel_array = [item.strip() for item in hostel.split(',') if item.strip()]
+                if hostel_array:
+                    filters['hostel__code__in'] = hostel_array
+            elif not params.get('all') and is_resident:
+                filters['hostel__code'] = self.kwargs['hostel__code']
+        elif is_resident:
+            # Non-global admins must always stay scoped to the route hostel.
             filters['hostel__code'] = self.kwargs['hostel__code']
 
         """
