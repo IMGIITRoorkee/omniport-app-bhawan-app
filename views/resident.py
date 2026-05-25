@@ -361,13 +361,14 @@ class ResidentViewset(viewsets.ModelViewSet):
         """
         hostel = params.get('hostel', None)
         all_hostels = strtobool(params.get('all', 'false'))
-        if is_global_admin(self.request.person):
+        global_admin = is_global_admin(self.request.person)
+        if hostel and (global_admin or all_hostels):
+            hostel_array = [item.strip() for item in hostel.split(',') if item.strip()]
+            if hostel_array:
+                filters['hostel__code__in'] = hostel_array
+        elif global_admin:
             # Global admins can list all hostels or a chosen subset.
-            if hostel:
-                hostel_array = [item.strip() for item in hostel.split(',') if item.strip()]
-                if hostel_array:
-                    filters['hostel__code__in'] = hostel_array
-            elif not all_hostels and is_resident:
+            if not all_hostels and is_resident:
                 filters['hostel__code'] = self.kwargs['hostel__code']
         elif is_resident and not all_hostels:
             filters['hostel__code'] = self.kwargs['hostel__code']
