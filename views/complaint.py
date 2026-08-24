@@ -1,4 +1,6 @@
 import datetime
+import logging
+
 import pandas as pd
 
 from rest_framework import mixins, viewsets, status
@@ -26,6 +28,8 @@ from bhawan_app.constants import complaint_types
 from bhawan_app.pagination.custom_pagination import CustomPagination 
 from bhawan_app.utils.notification.push_notification import send_push_notification
 from bhawan_app.utils.email.send_email import send_email
+
+logger = logging.getLogger('bhawan_app.views.complaint')
 
 
 class ComplaintViewset(viewsets.ModelViewSet):
@@ -242,6 +246,9 @@ class ComplaintViewset(viewsets.ModelViewSet):
 
         file_name = f'{hostel__code}_complaints_list.csv'
         df = pd.DataFrame(data)
+        logger.info(
+            f'{request.person} downloaded {file_name} with {len(df)} rows'
+        )
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=' + file_name
         df.to_csv(path_or_buf=response, index=False)

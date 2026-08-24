@@ -1,3 +1,5 @@
+import logging
+
 import swapper, pytz, time
 from datetime import datetime
 import pandas as pd
@@ -14,6 +16,8 @@ from bhawan_app.managers.services import is_hostel_admin, is_global_admin
 from bhawan_app.constants import room_types,room_occupancy
 
 Residence = swapper.load_model('kernel', 'Residence')
+
+logger = logging.getLogger('bhawan_app.views.student_accommodation')
 
 
 class StudentAccommodationViewset(viewsets.ModelViewSet):
@@ -158,6 +162,10 @@ class StudentAccommodationViewset(viewsets.ModelViewSet):
                 data['Last Modified'].append('Data never changed')
         file_name = 'Bhawan_accommodation_list.csv'
         df = pd.DataFrame(data)
+        logger.info(
+            f'{request.person} downloaded {file_name} with {len(df)} rows '
+            f'covering every hostel'
+        )
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=' + file_name
         df.to_csv(path_or_buf=response, index=False)

@@ -1,3 +1,5 @@
+import logging
+
 import swapper
 from distutils.util import strtobool
 
@@ -15,6 +17,8 @@ from bhawan_app.managers.services import is_warden, is_global_admin, is_supervis
     
 Person = swapper.load_model('Kernel', 'Person')
 Hostel = swapper.load_model('Kernel', 'Residence')
+
+logger = logging.getLogger('bhawan_app.views.hostel_admin')
 
 class HostelAdminViewset(viewsets.ModelViewSet):
     """
@@ -114,6 +118,10 @@ class HostelAdminViewset(viewsets.ModelViewSet):
                     person=person,
                     hostel=hostel,
                 )
+                logger.info(
+                    f'{request.person} granted {designation} of '
+                    f'{hostel__code} to {person.full_name}({person.id})'
+                )
 
                 return Response(
                     serializer.data,
@@ -152,6 +160,11 @@ class HostelAdminViewset(viewsets.ModelViewSet):
                     serializer.save(person=person)
                 else:
                     serializer.save()
+                logger.info(
+                    f'{request.person} changed admin row {instance.id} of '
+                    f'{hostel__code} to {instance.designation} held by '
+                    f'{instance.person.full_name}({instance.person_id})'
+                )
                 return Response(serializer.data, status=status.HTTP_200_OK)
 
             except IntegrityError:

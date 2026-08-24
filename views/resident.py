@@ -1,3 +1,5 @@
+import logging
+
 import swapper
 import pandas as pd
 
@@ -34,6 +36,8 @@ Branch = swapper.load_model('Kernel', 'Branch')
 BiologicalInformation = swapper.load_model('Kernel', 'BiologicalInformation')
 PoliticalInformation = swapper.load_model('kernel', 'PoliticalInformation')
 
+logger = logging.getLogger('bhawan_app.views.resident')
+
 class ResidentViewset(viewsets.ModelViewSet):
     """
     Detail view for getting information of a resident
@@ -50,6 +54,10 @@ class ResidentViewset(viewsets.ModelViewSet):
         if is_warden(request.person, hostel_code) or is_supervisor(request.person, hostel_code) or is_global_admin(request.person):
             pass
         else:
+            logger.warning(
+                f'{request.person} was refused {request.method} '
+                f'{request.get_full_path()}'
+            )
             raise PermissionDenied(
                 "Only Supervisor and Warden are allowed to perform this action!",
             )
@@ -59,6 +67,14 @@ class ResidentViewset(viewsets.ModelViewSet):
         queryset = Resident.objects.all()
         queryset = self.apply_filters(self.request, queryset)
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        logger.info(
+            f'{request.person} read {response.data.get("count")} resident '
+            f'records via {request.get_full_path()}'
+        )
+        return response
 
     def create(self, request, hostel__code):
         data = request.data
@@ -185,6 +201,9 @@ class ResidentViewset(viewsets.ModelViewSet):
 
     def retrieve(self, request, hostel__code, pk=None):
         enrolment_number = pk
+        logger.info(
+            f'{request.person} looked up student {enrolment_number}'
+        )
         try:
             queryset = self.get_queryset()
             instance = queryset.get(person__student__enrolment_number=enrolment_number)
