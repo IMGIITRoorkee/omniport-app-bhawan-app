@@ -119,7 +119,7 @@ class HostelAdminViewset(viewsets.ModelViewSet):
                     hostel=hostel,
                 )
                 logger.info(
-                    f'{request.person} granted {designation} of '
+                    f'{request.person}({request.person.id}) granted {designation} of '
                     f'{hostel__code} to {person.full_name}({person.id})'
                 )
 
@@ -161,7 +161,7 @@ class HostelAdminViewset(viewsets.ModelViewSet):
                 else:
                     serializer.save()
                 logger.info(
-                    f'{request.person} changed admin row {instance.id} of '
+                    f'{request.person}({request.person.id}) changed admin row {instance.id} of '
                     f'{hostel__code} to {instance.designation} held by '
                     f'{instance.person.full_name}({instance.person_id})'
                 )

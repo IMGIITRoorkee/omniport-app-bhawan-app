@@ -206,7 +206,7 @@ class RoomBookingViewset(viewsets.ModelViewSet):
         file_name = f'{hostel__code}_bookings_list.csv'
         df = pd.DataFrame(data)
         logger.info(
-            f'{request.person} downloaded {file_name} with {len(df)} rows'
+            f'{request.person}({request.person.id}) downloaded {file_name} with {len(df)} rows'
         )
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=' + file_name

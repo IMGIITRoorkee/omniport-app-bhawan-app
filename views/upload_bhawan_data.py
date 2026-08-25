@@ -63,7 +63,7 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
             complete_list = True
 
         logger.info(
-            f'{request.person} started a roster upload for {hostel__code} '
+            f'{request.person}({request.person.id}) started a roster upload for {hostel__code} '
             f'with complete_list={complete_list}'
         )
 
@@ -187,7 +187,7 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
         file_name = 'Errors.csv'
         df = pd.DataFrame(invalid_data)
         logger.info(
-            f'{request.person} received {file_name} ({len(df)} rows) from '
+            f'{request.person}({request.person.id}) received {file_name} ({len(df)} rows) from '
             f'the {hostel__code} upload'
         )
         response = HttpResponse(content_type='text/csv')

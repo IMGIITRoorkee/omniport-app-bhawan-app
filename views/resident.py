@@ -55,7 +55,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             pass
         else:
             logger.warning(
-                f'{request.person} was refused {request.method} '
+                f'{request.person}({request.person.id}) was refused {request.method} '
                 f'{request.get_full_path()}'
             )
             raise PermissionDenied(
@@ -71,7 +71,7 @@ class ResidentViewset(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         logger.info(
-            f'{request.person} read {response.data.get("count")} resident '
+            f'{request.person}({request.person.id}) read {response.data.get("count")} resident '
             f'records via {request.get_full_path()}'
         )
         return response
@@ -202,7 +202,7 @@ class ResidentViewset(viewsets.ModelViewSet):
     def retrieve(self, request, hostel__code, pk=None):
         enrolment_number = pk
         logger.info(
-            f'{request.person} looked up student {enrolment_number}'
+            f'{request.person}({request.person.id}) looked up student {enrolment_number}'
         )
         try:
             queryset = self.get_queryset()
@@ -697,7 +697,7 @@ class ResidentViewset(viewsets.ModelViewSet):
         file_name = f'{hostel__code}_students_list.csv'
         df = pd.DataFrame(data)
         logger.info(
-            f'{request.person} downloaded {file_name} with {len(df)} rows '
+            f'{request.person}({request.person.id}) downloaded {file_name} with {len(df)} rows '
             f'via {request.get_full_path()}'
         )
         response = HttpResponse(content_type='text/csv')

@@ -163,7 +163,7 @@ class StudentAccommodationViewset(viewsets.ModelViewSet):
         file_name = 'Bhawan_accommodation_list.csv'
         df = pd.DataFrame(data)
         logger.info(
-            f'{request.person} downloaded {file_name} with {len(df)} rows '
+            f'{request.person}({request.person.id}) downloaded {file_name} with {len(df)} rows '
             f'covering every hostel'
         )
         response = HttpResponse(content_type='text/csv')
