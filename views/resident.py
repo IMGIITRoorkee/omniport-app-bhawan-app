@@ -696,6 +696,10 @@ class ResidentViewset(viewsets.ModelViewSet):
 
         file_name = f'{hostel__code}_students_list.csv'
         df = pd.DataFrame(data)
+        logger.info(
+            f'{request.person} downloaded {file_name} with {len(df)} rows '
+            f'via {request.get_full_path()}'
+        )
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=' + file_name
         df.to_csv(path_or_buf=response, index=False)

@@ -1,4 +1,6 @@
 import json
+import logging
+
 import swapper
 import pandas as pd
 from datetime import datetime
@@ -18,6 +20,8 @@ from bhawan_app.constants import statuses
 from bhawan_app.pagination.custom_pagination import CustomPagination
 
 Person = swapper.load_model('kernel', 'Person')
+
+logger = logging.getLogger('bhawan_app.views.room_booking')
 
 
 class RoomBookingViewset(viewsets.ModelViewSet):
@@ -201,6 +205,9 @@ class RoomBookingViewset(viewsets.ModelViewSet):
 
         file_name = f'{hostel__code}_bookings_list.csv'
         df = pd.DataFrame(data)
+        logger.info(
+            f'{request.person} downloaded {file_name} with {len(df)} rows'
+        )
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=' + file_name
         df.to_csv(path_or_buf=response, index=False)
