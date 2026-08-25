@@ -1,3 +1,5 @@
+import logging
+
 from email.policy import default
 import swapper
 import json
@@ -14,6 +16,8 @@ from rest_framework.permissions import IsAuthenticated
 from bhawan_app.models import Item, Complaint, DefaultItem
 from bhawan_app.serializers.item import ItemSerializer
 from bhawan_app.managers.services import is_hostel_admin, is_global_admin, is_warden, is_supervisor
+
+logger = logging.getLogger('bhawan_app.views.item')
 from bhawan_app.constants import complaint_items
 from bhawan_app.pagination.custom_pagination import CustomPagination 
 
@@ -115,6 +119,9 @@ class ItemViewset(viewsets.ModelViewSet):
 
         file_name = f'{hostel__code}_items_list.csv'
         df = pd.DataFrame(data)
+        logger.info(
+            f'{request.person}({request.person.id}) downloaded {file_name} with {len(df)} rows'
+        )
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=' + file_name
         df.to_csv(path_or_buf=response, index=False)

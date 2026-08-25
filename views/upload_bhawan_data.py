@@ -1,3 +1,5 @@
+import logging
+
 import swapper
 import csv
 import pandas as pd
@@ -16,6 +18,8 @@ from bhawan_app.managers.services import is_senior_maintainer
 
 Person = swapper.load_model('kernel', 'Person')
 Residence = swapper.load_model('kernel', 'Residence')
+
+logger = logging.getLogger('bhawan_app.views.upload_bhawan_data')
 
 class UploadBhawanDataViewset(viewsets.ModelViewSet):
     """
@@ -57,6 +61,11 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
             complete_list = False
         else:
             complete_list = True
+
+        logger.info(
+            f'{request.person}({request.person.id}) started a roster upload for {hostel__code} '
+            f'with complete_list={complete_list}'
+        )
 
         ROOM_NA = ['', 'Not Joined', 'Not joined yet', 'NOT ALLOWTED', 'Pending', 'Not Joining yet', 'not joined yet', 'Not Joined Yet', 'Not Allotted']
         invalid_data = {
@@ -177,6 +186,10 @@ class UploadBhawanDataViewset(viewsets.ModelViewSet):
         invalid_data['Error while uploading'].append('')
         file_name = 'Errors.csv'
         df = pd.DataFrame(invalid_data)
+        logger.info(
+            f'{request.person}({request.person.id}) received {file_name} ({len(df)} rows) from '
+            f'the {hostel__code} upload'
+        )
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=' + file_name
         df.to_csv(path_or_buf=response, index=False)
