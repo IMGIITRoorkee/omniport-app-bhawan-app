@@ -606,8 +606,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             return Response(
                 error,
                 status=status.HTTP_400_BAD_REQUEST,
-            )
-
+            )   
 
 
     @action(detail=False, methods=['get'])
@@ -619,6 +618,7 @@ class ResidentViewset(viewsets.ModelViewSet):
         params = self.request.GET
         queryset = Resident.objects.all()
         queryset = self.apply_filters(self.request, queryset)
+        
         data = {
             'Enrolment No.': [],
             'Name': [],
@@ -627,7 +627,7 @@ class ResidentViewset(viewsets.ModelViewSet):
             'Contact No': [],
             'Email': [],
             'Fee Status': [],
-            'Inside Campus': [], 
+            'Inside Campus': [],
             'Current Year': [],
             'Current Semester': [],
             'Program': [],
@@ -648,15 +648,43 @@ class ResidentViewset(viewsets.ModelViewSet):
             'Postal Code': [],
             'Reservation Category': [],
         }
+        
         for resident in queryset:
             try:
-                data['Enrolment No.'].append(self.get_enrolment_number(resident))
-                data['Name'].append(resident.person.full_name)
-                data['Room No.'].append(resident.room_number)
-                data['Hostel'].append(resident.hostel.name)
-                data['Contact No'].append(self.get_phone_number(resident))
-                data['Email'].append(self.get_email_address(resident))
-                data['Fee Status'].append(resident.fee_type)
+                student = Student.objects.get(person=resident.person)                
+            except Student.DoesNotExist:
+                student = None
+            try:
+                contact_information = ContactInformation.objects.filter(person=resident.person).first()                
+            except ContactInformation.DoesNotExist:
+                contact_information = None
+            try:
+                branch = Branch.objects.get(student=student)
+            except Branch.DoesNotExist:
+                branch = None   
+            try:
+                biological_information = \
+                BiologicalInformation.objects.get(person=resident.person)
+            except BiologicalInformation.DoesNotExist:
+                biological_information = None
+            try:
+                location_information = \
+                LocationInformation.objects.filter(person=resident.person).first()
+            except LocationInformation.DoesNotExist:
+                location_information = None
+            try:
+                political_information = \
+                PoliticalInformation.objects.get(person=resident.person)
+            except PoliticalInformation.DoesNotExist:
+                political_information = None
+            try:
+                data['Enrolment No.'].append(student.enrolment_number if student else "")
+                data['Name'].append(resident.person.full_name if resident.person else "")
+                data['Room No.'].append(resident.room_number if resident.room_number else "")
+                data['Hostel'].append(resident.hostel.name if resident.hostel else "")
+                data['Contact No'].append(contact_information.primary_phone_number if contact_information else "")
+                data['Email'].append(contact_information.institute_webmail_address if contact_information else "")
+                data['Fee Status'].append(resident.fee_type if resident.fee_type else "")
                 if(resident.father):
                     data['Fathers Name'].append(resident.father.full_name)
                     data['Fathers Contact'].append(resident.fathers_contact)
@@ -669,24 +697,21 @@ class ResidentViewset(viewsets.ModelViewSet):
                 else:
                     data['Mothers Name'].append("")
                     data['Mothers Contact'].append("")
-                data['Current Year'].append(self.get_current_year(resident))
-                data['Current Semester'].append(self.get_current_semester(resident))
-
-                program = self.get_program(resident)
-                data['Degree'].append(program[1])
-                data['Program'].append(program[0])
-
-                data['Department'].append(self.get_department(resident))
-                data['Date of Birth'].append(self.get_date_of_birth(resident))
-                data['Address'].append(self.get_address(resident))
+                data['Current Year'].append(student.current_year if student else "")
+                data['Current Semester'].append(student.current_semester if student else "")                
+                data['Degree'].append(branch.degree.name if branch and branch.degree else "")
+                data['Program'].append(branch.name if branch else "")
+                data['Department'].append(branch.department.name if branch and branch.department else "")
+                data['Date of Birth'].append(biological_information.date_of_birth if biological_information else "")
+                data['Address'].append(location_information.address if location_information else "")
                 data['Student Home Address as per Bhawan Records'].append(resident.address_bhawan)
                 data['Admission Date'].append(resident.admission_date)
                 data['Contact Number As Per Bhawan Records'].append(resident.contact_number_as_bhawan)
-                data['City'].append(self.get_city(resident))
-                data['State'].append(self.get_state(resident))
-                data['Country'].append(self.get_country(resident))
-                data['Postal Code'].append(self.get_postal_code(resident))
-                data['Reservation Category'].append(self.get_reservation_category(resident))
+                data['City'].append(location_information.city if location_information else "")
+                data['State'].append(location_information.state if location_information else "")
+                data['Country'].append(location_information.country.name if location_information and location_information.country else "")
+                data['Postal Code'].append(location_information.postal_code if location_information else "")
+                data['Reservation Category'].append(political_information.reservation_category if political_information else "")
                 if (resident.is_living_in_campus):
                     data['Inside Campus'].append("Yes")
                 else:
