@@ -11,6 +11,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.renderers import JSONRenderer
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.core.exceptions import ObjectDoesNotExist
@@ -21,11 +22,11 @@ from formula_one.models.generics.location_information import LocationInformation
 from bhawan_app.models import Resident, HostelAdmin
 from bhawan_app.serializers.resident import ResidentSerializer
 from bhawan_app.managers.services import (
-    is_warden,
-    is_supervisor,
+    can_manage_residents,
     is_hostel_admin,
     is_global_admin,
 )
+from bhawan_app.managers.bulk_register import register_residents
 from bhawan_app.pagination.custom_pagination import CustomPagination
 
 
@@ -50,10 +51,7 @@ class ResidentViewset(viewsets.ModelViewSet):
 
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
-        hostel_code = self.kwargs['hostel__code']
-        if is_warden(request.person, hostel_code) or is_supervisor(request.person, hostel_code) or is_global_admin(request.person):
-            pass
-        else:
+        if not can_manage_residents(request.person, self.kwargs['hostel__code']):
             logger.warning(
                 f'{request.person}({request.person.id}) was refused {request.method} '
                 f'{request.get_full_path()}'
@@ -480,6 +478,34 @@ class ResidentViewset(viewsets.ModelViewSet):
 
         queryset = queryset.filter(is_resident=is_resident)
         return queryset
+
+    # The bulk register page reads the report keys in snake case.
+    @action(detail=False, methods=['post'], renderer_classes=[JSONRenderer])
+    def bulk_register(self, request, hostel__code):
+        """
+        This method registers students from the rows of a bulk upload,
+        or previews what it would do when dry_run is not false
+        """
+        rows = request.data.get('rows') if isinstance(request.data, dict) else None
+        if not rows or not isinstance(rows, list) or not all(isinstance(row, dict) for row in rows):
+            return Response(
+                {"detail": "rows must be a non-empty list of objects"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        report = register_residents(
+            rows,
+            dry_run=request.data.get('dry_run') is not False,
+            person=request.person,
+        )
+        summary = report['summary']
+        logger.info(
+            f'{request.person}({request.person.id}) '
+            f'{"previewed" if report["dry_run"] else "ran"} a bulk registration of '
+            f'{len(rows)} rows into {hostel__code}: {summary["created"]} created, '
+            f'{summary["updated"]} updated, {summary["existing"]} unchanged, '
+            f'{summary["skipped"]} skipped'
+        )
+        return Response(report)
 
     @action(detail=True, methods=['get'])
     def previous_records(self, request, hostel__code, pk):

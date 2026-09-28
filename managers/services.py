@@ -52,6 +52,17 @@ def is_warden(person, hostel_code):
             or role.designation == designations.ASSISTANT_WARDEN_3
     return False
 
+def can_manage_residents(person, hostel_code):
+    """
+    Returns if the person can register and edit residents of the hostel
+    :param person: an instance of the Person model whose roles are sought
+    :return: if the person is a warden or supervisor of the hostel or a global admin
+    """
+
+    return is_warden(person, hostel_code) \
+        or is_supervisor(person, hostel_code) \
+        or is_global_admin(person) is not None
+
 def is_hostel_admin(person, hostel_code):
     """
     Returns if the person is hostel admin or not
