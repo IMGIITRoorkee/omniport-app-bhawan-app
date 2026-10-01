@@ -242,3 +242,27 @@ class NonResidingStudentTests(APITestCase):
         response = self.other_warden.get(self.url(self.hostel, 'download/'))
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_list_is_logged_with_row_count(self):
+        self.add(self.hostel)
+
+        with self.assertLogs('bhawan_app.views.non_residing_student', 'INFO') as logs:
+            self.warden.get(self.url(self.hostel))
+
+        self.assertIn('read 1 non residing student records', logs.output[0])
+
+    def test_all_is_logged_with_the_hostels_it_covers(self):
+        self.add(self.hostel)
+
+        with self.assertLogs('bhawan_app.views.non_residing_student', 'INFO') as logs:
+            self.warden.get('/api/bhawan_app/non_residing_student/all/')
+
+        self.assertIn('read 1 non residing student records covering azb', logs.output[0])
+
+    def test_download_is_logged_with_row_count(self):
+        self.add(self.hostel)
+
+        with self.assertLogs('bhawan_app.views.non_residing_student', 'INFO') as logs:
+            self.warden.get(self.url(self.hostel, 'download/'))
+
+        self.assertIn('downloaded azb_non_residing_students.csv with 1 rows', logs.output[0])

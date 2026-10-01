@@ -1,3 +1,5 @@
+import logging
+
 import pandas as pd
 
 from rest_framework import viewsets, status
@@ -12,9 +14,11 @@ from bhawan_app.models import NonResidingStudent
 from bhawan_app.models.roles.hostel_admin import HostelAdmin
 from bhawan_app.serializers.non_residing_student import NonResidingStudentSerializer
 
+logger = logging.getLogger('bhawan_app.views.non_residing_student')
+
 
 class NonResidingStudentViewset(viewsets.ModelViewSet):
-    """CRUD and download APIs for non-dining non-residing students."""
+    """CRUD and download APIs for non-residing students."""
 
     serializer_class = NonResidingStudentSerializer
     permission_classes = [IsAuthenticated]
@@ -34,6 +38,14 @@ class NonResidingStudentViewset(viewsets.ModelViewSet):
         if not self._has_nrs_access_for_hostel(self.request.person, hostel_code):
             return NonResidingStudent.objects.none()
         return NonResidingStudent.objects.filter(hostel__code=hostel_code)
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        logger.info(
+            f'{request.person}({request.person.id}) read {len(response.data)} non residing student '
+            f'records via {request.get_full_path()}'
+        )
+        return response
 
     def _get_nrs_accessible_hostel_codes(self, person):
         """
@@ -63,6 +75,11 @@ class NonResidingStudentViewset(viewsets.ModelViewSet):
         if hostel_codes is not None:
             queryset = queryset.filter(hostel__code__in=hostel_codes)
         serializer = self.get_serializer(queryset, many=True)
+        logger.info(
+            f'{request.person}({request.person.id}) read {len(serializer.data)} non residing student '
+            f'records covering '
+            f'{"every hostel" if hostel_codes is None else ", ".join(hostel_codes)}'
+        )
         return Response(serializer.data)
 
     def get_serializer_context(self):
@@ -127,6 +144,9 @@ class NonResidingStudentViewset(viewsets.ModelViewSet):
 
         file_name = f'{hostel__code}_non_residing_students.csv'
         df = pd.DataFrame(data)
+        logger.info(
+            f'{request.person}({request.person.id}) downloaded {file_name} with {len(df)} rows'
+        )
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=' + file_name
         df.to_csv(path_or_buf=response, index=False)

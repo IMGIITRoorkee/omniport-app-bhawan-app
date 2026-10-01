@@ -6,7 +6,7 @@ from formula_one.models.base import Model
 
 
 class NonResidingStudent(Model):
-    """Stores non-dining, non-residing student registrations for a bhawan."""
+    """Stores non-residing student registrations for a bhawan."""
 
     RA = 'ra'
     PDF = 'pdf'
