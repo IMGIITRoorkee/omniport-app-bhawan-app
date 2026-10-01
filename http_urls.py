@@ -17,6 +17,7 @@ from bhawan_app.views.resident import ResidentViewset
 from bhawan_app.views.room import RoomViewset
 from bhawan_app.views.student_accommodation import StudentAccommodationViewset
 from bhawan_app.views.upload_bhawan_data import UploadBhawanDataViewset
+from bhawan_app.views.non_residing_student import NonResidingStudentViewset
 
 
 
@@ -73,6 +74,9 @@ router.register(
 router.register(
     r"(?P<hostel__code>[\w\-]+)/upload_bhawan_data", UploadBhawanDataViewset, basename="upload_bhawan_data",
 )
+router.register(
+    r"(?P<hostel__code>[\w\-]+)/non_residing_student", NonResidingStudentViewset, basename="non_residing_student",
+)
 
 urlpatterns = [
     path(
@@ -84,6 +88,11 @@ urlpatterns = [
             'get': 'download_all'
         }), 
         name='accomodation_data_download',
+    ),
+    path(
+        'non_residing_student/all/',
+        NonResidingStudentViewset.as_view({'get': 'all'}),
+        name='non_residing_student_all',
     ),
 ]
 

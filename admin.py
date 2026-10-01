@@ -1,4 +1,5 @@
 from omniport.admin.site import omnipotence
+from django.contrib import admin
 
 from bhawan_app.models import (
     Profile,
@@ -14,10 +15,25 @@ from bhawan_app.models import (
     ComplaintTimeSlot,
     Resident,
     Room,
-    StudentAccommodation
+    StudentAccommodation,
+    NonResidingStudent,
 )
 
 from bhawan_app.models.roles import HostelAdmin
+
+
+class NonResidingStudentAdmin(admin.ModelAdmin):
+    list_display = (
+        'hostel',
+        'name',
+        'designation',
+        'department',
+        'mobile_number',
+        'room_number',
+        'from_date',
+        'upto_date',
+        'email_id',
+    )
 
 omnipotence.register(Profile)
 omnipotence.register(Contact)
@@ -34,4 +50,5 @@ omnipotence.register(ComplaintTimeSlot)
 omnipotence.register(Resident)
 omnipotence.register(Room)
 omnipotence.register(StudentAccommodation)
+omnipotence.register(NonResidingStudent, NonResidingStudentAdmin)
 
