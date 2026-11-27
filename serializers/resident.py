@@ -59,6 +59,7 @@ class ResidentSerializer(serializers.ModelSerializer):
         model = Resident
         fields = [
             "id",
+            "person",
             "resident_name",
             "room_number",
             "is_living_in_campus",
@@ -92,6 +93,7 @@ class ResidentSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             'room_number': { 'read_only': True },
+            'person': { 'read_only': True },
         }
 
     def get_email_address(self, resident):
